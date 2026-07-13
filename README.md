@@ -1,18 +1,31 @@
 # DSA Visualizer
 
-An interactive web-based Data Structures and Algorithms Visualizer built using HTML, CSS, and JavaScript.
+## Overview
+Brief description of the project.
 
 ## Features
-
-- Arrays
-- Linked Lists
-- Stacks
-- Queues
-- Trees
-- Graphs
+- Array Visualization
+- Stack
+- Queue
+- Linked List
+- Tree
+- Graph
 - Sorting Algorithms
 - Searching Algorithms
 - Dynamic Programming
 - Recursion
 
-> More documentation will be added as the project develops.
+## Tech Stack
+- HTML5
+- CSS3
+- JavaScript
+
+## Project Structure
+
+## Screenshots
+
+## How to Run
+
+## Future Enhancements
+
+## Author
