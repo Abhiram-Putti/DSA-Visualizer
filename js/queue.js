@@ -60,13 +60,24 @@ const QueueModule = (() => {
   function drawFrame(frame) {
     ws.stage.innerHTML = '';
     if (state.mode === 'priority') {
-      const row = el('div', { class: 'array-row' }, frame.items.map((it, i) =>
-        el('div', { class: `node-box ${i === 0 ? 'active' : ''}`, style: 'flex-direction:column; height:auto; padding:8px 10px;' }, [
+      const prios = frame.items.map(it => it.priority);
+      const min = Math.min(...prios, 0), max = Math.max(...prios, 0);
+      const row = el('div', { class: 'array-row' }, frame.items.map((it, i) => {
+        const t = max === min ? 50 : Math.round(((it.priority - min) / (max - min)) * 100);
+        return el('div', {
+          class: `node-box ${i === 0 ? 'active pop-in' : ''}`,
+          style: `flex-direction:column; height:auto; padding:8px 10px; ${i === 0 ? '' : `border-color: color-mix(in srgb, var(--compare-hi) ${t}%, var(--compare-lo)); background: linear-gradient(160deg, color-mix(in srgb, var(--compare-hi) ${t}%, var(--compare-lo) 22%), var(--surface));`}`
+        }, [
           el('div', { text: it.val }),
-          el('div', { style: 'font-size:10px;color:var(--text-faint)', text: `p:${it.priority}` })
-        ])
-      ));
+          el('div', { style: 'font-size:10px;color:var(--text-faint)', text: `p:${it.priority}` }),
+          i === 0 ? el('div', { style: 'font-size:9px;color:var(--accent);font-weight:700', text: 'FRONT' }) : null
+        ]);
+      }));
       ws.stage.appendChild(row.childNodes.length ? row : el('div', { class: 'empty-state', text: 'Queue is empty' }));
+      ws.stage.appendChild(el('div', { class: 'legend', style: 'margin-top:14px' }, [
+        el('span', { class: 'badge' }, [el('span', { class: 'swatch', style: 'background:var(--compare-hi)' }), document.createTextNode('Higher priority')]),
+        el('span', { class: 'badge' }, [el('span', { class: 'swatch', style: 'background:var(--compare-lo)' }), document.createTextNode('Lower priority')])
+      ]));
       return;
     }
     if (state.mode === 'deque') {
@@ -113,7 +124,7 @@ const QueueModule = (() => {
   function doEnqueue(val, priority) {
     if (state.mode === 'priority') {
       state.items.push({ val, priority: Number(priority) || 0 });
-      state.items.sort((a, b) => a.priority - b.priority);
+      state.items.sort((a, b) => b.priority - a.priority);
       state.enq++;
       pushHistory(`Enqueue(${val}, priority ${priority}) → inserted in priority order`, 0);
       return;
@@ -209,7 +220,11 @@ const QueueModule = (() => {
       complexity: META.queue,
       applications: META.queue.applications, advantages: META.queue.advantages, disadvantages: META.queue.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Front / Active' }]
+      legend: [
+        { color: 'var(--accent)', label: 'Front / Active' },
+        { color: 'var(--compare-hi)', label: 'Higher priority' },
+        { color: 'var(--compare-lo)', label: 'Lower priority' }
+      ]
     });
     state = { mode: 'queue', items: [], front: -1, rear: -1, enq: 0, deq: 0 };
     ws.startBtn.style.display = 'none';
