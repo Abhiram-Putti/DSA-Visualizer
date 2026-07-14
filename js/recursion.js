@@ -97,7 +97,13 @@ const RecursionModule = (() => {
       complexity: META.factorial,
       applications: META.factorial.applications, advantages: META.factorial.advantages, disadvantages: META.factorial.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Active call' }, { color: 'var(--accent-2)', label: 'Returned' }]
+      legend: [
+        { color: 'var(--accent)', label: 'Active call' },
+        { color: 'var(--compare-lo)', label: 'mid < target · go right' },
+        { color: 'var(--compare-hi)', label: 'mid > target · go left' },
+        { color: 'var(--success)', label: 'Match found' },
+        { color: 'var(--accent-2)', label: 'Returned' }
+      ]
     });
     state = { mode: 'factorial' };
     refreshInfo();
@@ -123,7 +129,7 @@ const RecursionModule = (() => {
         steps.push({
           desc: `Call ${ev.label}`, line: ev.line,
           counters: { calls: order.length, depth: maxDepth, timer: steps.length },
-          render: () => renderTree(nodes, order, ev.id)
+          render: () => renderTree(nodes, order, ev.id, ev.dir)
         });
       } else {
         const n = nodes.get(ev.id);
@@ -138,14 +144,15 @@ const RecursionModule = (() => {
     return steps;
   }
 
-  function renderTree(nodes, order, activeId) {
+  function renderTree(nodes, order, activeId, activeDir) {
     ws.stage.innerHTML = '';
     if (!order.length) { ws.stage.appendChild(el('div', { class: 'empty-state', text: 'No calls yet.' })); return; }
     const rootId = order[0];
+    const dirCls = activeDir === 'lo' ? 'compare-lo' : activeDir === 'hi' ? 'compare-hi' : activeDir === 'eq' ? 'match' : 'calling';
     const buildLi = (id) => {
       const n = nodes.get(id);
       const children = order.filter(oid => nodes.get(oid).parent === id);
-      const box = el('div', { class: `rnode ${id === activeId ? 'calling' : n.status === 'returned' ? 'returned' : 'pending'}` }, [
+      const box = el('div', { class: `rnode ${id === activeId ? dirCls : n.status === 'returned' ? 'returned' : 'pending'}` }, [
         el('div', { text: n.label }),
         n.ret !== null ? el('div', { class: 'ret', text: `→ ${n.ret}` }) : null
       ]);
@@ -198,6 +205,7 @@ const RecursionModule = (() => {
         events.push({ type: 'call', id, parent, label: `search(${lo},${hi})`, depth, line: 0 });
         if (lo > hi) { events.push({ type: 'return', id, ret: -1, label: `search(${lo},${hi})`, line: 1 }); return -1; }
         const mid = Math.floor((lo + hi) / 2);
+        events[events.length - 1].dir = arr[mid] === target ? 'eq' : arr[mid] < target ? 'lo' : 'hi';
         if (arr[mid] === target) { events.push({ type: 'return', id, ret: mid, label: `search(${lo},${hi})`, line: 3 }); return mid; }
         let ret;
         if (arr[mid] < target) ret = search(mid + 1, hi, id, depth + 1);
