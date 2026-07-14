@@ -39,6 +39,11 @@
   --accent-3: #8C7CFF;      /* violet — "structural / secondary" */
   --accent-3-soft: rgba(140,124,255,0.14);
 
+  --compare-lo: #4EA8FF;    /* blue — "smaller value in an active comparison" */
+  --compare-lo-soft: rgba(78,168,255,0.16);
+  --compare-hi: #FF8A3D;    /* amber — "larger value in an active comparison" (reuses --accent) */
+  --compare-hi-soft: rgba(255,138,61,0.16);
+
   --success: #5FD97A;
   --success-soft: rgba(95,217,122,0.14);
   --danger: #FF5C6C;
@@ -78,6 +83,11 @@
 
   --accent-3: #6C5CE7;
   --accent-3-soft: rgba(108,92,231,0.10);
+
+  --compare-lo: #1E7FE0;
+  --compare-lo-soft: rgba(30,127,224,0.10);
+  --compare-hi: #DD6A22;
+  --compare-hi-soft: rgba(221,106,34,0.10);
 
   --success: #1E9E4A;
   --success-soft: rgba(30,158,74,0.10);
