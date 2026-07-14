@@ -54,11 +54,11 @@ const StackModule = (() => {
 
   let ws, state, history, historyIndex;
 
-  function stackFrame(stackArr, highlightTop = false, overflow = false, underflow = false) {
+  function stackFrame(stackArr, highlightTop = false, overflow = false, underflow = false, topClass = 'active') {
     const box = el('div', { style: 'display:flex; flex-direction:column-reverse; gap:6px; align-items:center; min-height:260px; justify-content:flex-start;' });
     stackArr.forEach((v, i) => {
       const isTop = i === stackArr.length - 1;
-      box.appendChild(el('div', { class: `node-box ${isTop && highlightTop ? 'active pop-in' : ''}`, style: 'width:120px;' }, [
+      box.appendChild(el('div', { class: `node-box ${isTop && highlightTop ? topClass + ' pop-in' : ''}`, style: 'width:120px;' }, [
         document.createTextNode(String(v)),
         isTop ? el('span', { class: 'ptr-arrow', text: '← top', style: 'font-size:10px;color:var(--accent)' }) : null
       ]));
@@ -201,7 +201,12 @@ const StackModule = (() => {
       complexity: META.interactive,
       applications: META.interactive.applications, advantages: META.interactive.advantages, disadvantages: META.interactive.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Top / Active' }, { color: 'var(--danger)', label: 'Overflow / Underflow' }]
+      legend: [
+        { color: 'var(--accent)', label: 'Top / Active' },
+        { color: 'var(--compare-lo)', label: 'Smaller in comparison' },
+        { color: 'var(--compare-hi)', label: 'Larger in comparison' },
+        { color: 'var(--danger)', label: 'Overflow / Underflow' }
+      ]
     });
     state = { mode: 'interactive', stack: [] };
     ws.startBtn.style.display = 'none';
@@ -260,9 +265,11 @@ const StackModule = (() => {
     const steps = [];
     for (let i = n - 1; i >= 0; i--) {
       while (stk.length && stk[stk.length - 1] <= arr[i]) {
+        steps.push(mkNgeStep(`Compare arr[${i}]=${arr[i]} with stack top ${stk[stk.length - 1]}`, 1, arr, stk, result, i, 'cmp'));
         stk.pop();
         steps.push(mkNgeStep(`arr[${i}]=${arr[i]} ≥ stack top → pop`, 1, arr, stk, result, i));
       }
+      if (stk.length) steps.push(mkNgeStep(`Compare arr[${i}]=${arr[i]} with stack top ${stk[stk.length - 1]}`, 1, arr, stk, result, i, 'cmp'));
       result[i] = stk.length ? stk[stk.length - 1] : -1;
       steps.push(mkNgeStep(`Next Greater of ${arr[i]} = ${result[i]}`, 3, arr, stk, result, i));
       stk.push(arr[i]);
@@ -273,16 +280,25 @@ const StackModule = (() => {
     ws.player.play();
     ws.enableTransport();
   }
-  function mkNgeStep(desc, line, arr, stk, result, idx) {
+  function mkNgeStep(desc, line, arr, stk, result, idx, mode) {
     return {
       desc, line, counters: { pushes: 0, pops: 0, timer: 0 },
       render() {
         ws.stage.innerHTML = '';
+        const top = stk.length ? stk[stk.length - 1] : null;
+        const isCmp = mode === 'cmp' && top !== null;
+        let arrCls = 'active';
+        let topCls = 'active';
+        if (isCmp) {
+          if (arr[idx] === top) { arrCls = 'compare'; topCls = 'compare'; }
+          else if (arr[idx] > top) { arrCls = 'compare-hi'; topCls = 'compare-lo'; }
+          else { arrCls = 'compare-lo'; topCls = 'compare-hi'; }
+        }
         const arrRow = el('div', { class: 'array-row', style: 'margin-bottom:24px' }, arr.map((v, i) =>
-          el('div', { class: `array-cell ${i === idx ? 'active' : ''}` }, [document.createTextNode(String(v)), el('span', { class: 'idx', text: result[i] === -1 && idx !== i ? '' : `NGE:${result[i]}` })])
+          el('div', { class: `array-cell ${i === idx ? arrCls : ''}` }, [document.createTextNode(String(v)), el('span', { class: 'idx', text: result[i] === -1 && idx !== i ? '' : `NGE:${result[i]}` })])
         ));
         ws.stage.appendChild(arrRow);
-        ws.stage.appendChild(el('div', { style: 'margin-top:14px' }, [stackFrame(stk, true)]));
+        ws.stage.appendChild(el('div', { style: 'margin-top:14px' }, [stackFrame(stk, true, false, false, topCls)]));
       }
     };
   }
