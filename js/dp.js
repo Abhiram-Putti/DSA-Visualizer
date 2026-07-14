@@ -111,7 +111,14 @@ const DPModule = (() => {
       complexity: META.fib,
       applications: META.fib.applications, advantages: META.fib.advantages, disadvantages: META.fib.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Active cell' }, { color: 'var(--surface-2)', label: 'Filled' }]
+      legend: [
+        { color: 'var(--accent)', label: 'Active cell' },
+        { color: 'var(--success)', label: 'Match (LCS)' },
+        { color: 'var(--danger)', label: 'Mismatch (LCS)' },
+        { color: 'var(--compare-lo)', label: 'Include wins (Knapsack)' },
+        { color: 'var(--compare-hi)', label: 'Exclude wins (Knapsack)' },
+        { color: 'var(--surface-2)', label: 'Filled' }
+      ]
     });
     state = { mode: 'fib', c: controls };
     refreshInfo();
@@ -124,7 +131,7 @@ const DPModule = (() => {
 
   function nums(str) { return str.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n)); }
 
-  function renderTable(rows, cols, get, activeR, activeC, rowLabels, colLabels) {
+  function renderTable(rows, cols, get, activeR, activeC, rowLabels, colLabels, activeCls) {
     const table = el('table', { class: 'dp-table' });
     const head = el('tr', {}, [el('th', {}), ...Array.from({ length: cols }, (_, j) => el('th', { text: colLabels ? colLabels[j] : j }))]);
     table.appendChild(head);
@@ -132,7 +139,7 @@ const DPModule = (() => {
       const tr = el('tr', {}, [el('th', { text: rowLabels ? rowLabels[i] : i })]);
       for (let j = 0; j < cols; j++) {
         const v = get(i, j);
-        const cls = (i === activeR && j === activeC) ? 'active' : (v !== '' && v !== undefined) ? 'filled' : '';
+        const cls = (i === activeR && j === activeC) ? (activeCls || 'active') : (v !== '' && v !== undefined) ? 'filled' : '';
         tr.appendChild(el('td', { class: cls, text: v === undefined ? '' : v }));
       }
       table.appendChild(tr);
@@ -166,11 +173,15 @@ const DPModule = (() => {
       const dp = Array.from({ length: n + 1 }, () => new Array(W + 1).fill(0));
       for (let i = 1; i <= n; i++) {
         for (let w = 0; w <= W; w++) {
-          if (wt[i - 1] <= w) { dp[i][w] = Math.max(dp[i - 1][w], val[i - 1] + dp[i - 1][w - wt[i - 1]]); }
-          else dp[i][w] = dp[i - 1][w];
+          let included = false;
+          if (wt[i - 1] <= w) {
+            const withItem = val[i - 1] + dp[i - 1][w - wt[i - 1]], without = dp[i - 1][w];
+            included = withItem >= without;
+            dp[i][w] = Math.max(without, withItem);
+          } else dp[i][w] = dp[i - 1][w];
           cellsFilled++;
-          push(`item ${i} (wt=${wt[i - 1]},val=${val[i - 1]}), cap=${w} → dp=${dp[i][w]}`, wt[i - 1] <= w ? 3 : 4,
-            () => { ws.stage.innerHTML = ''; ws.stage.appendChild(renderTable(n + 1, W + 1, (ii, ww) => dp[ii][ww], i, w)); }, dp[n][W]);
+          push(`item ${i} (wt=${wt[i - 1]},val=${val[i - 1]}), cap=${w} → dp=${dp[i][w]} (${wt[i - 1] <= w ? (included ? 'include wins' : 'exclude wins') : "doesn't fit"})`, wt[i - 1] <= w ? 3 : 4,
+            () => { ws.stage.innerHTML = ''; ws.stage.appendChild(renderTable(n + 1, W + 1, (ii, ww) => dp[ii][ww], i, w, null, null, wt[i - 1] <= w ? (included ? 'include' : 'exclude') : 'exclude')); }, dp[n][W]);
         }
       }
       push(`Max value = ${dp[n][W]}`, 0, () => { ws.stage.innerHTML = ''; ws.stage.appendChild(renderTable(n + 1, W + 1, (i, w) => dp[i][w], n, W)); }, dp[n][W]);
@@ -185,7 +196,7 @@ const DPModule = (() => {
           else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
           cellsFilled++;
           push(`${A[i - 1]} vs ${B[j - 1]} → dp[${i}][${j}]=${dp[i][j]}`, A[i - 1] === B[j - 1] ? 1 : 2,
-            () => { ws.stage.innerHTML = ''; ws.stage.appendChild(renderTable(n + 1, m + 1, (ii, jj) => dp[ii][jj], i, j, ['', ...A.split('')], ['', ...B.split('')])); }, dp[n][m]);
+            () => { ws.stage.innerHTML = ''; ws.stage.appendChild(renderTable(n + 1, m + 1, (ii, jj) => dp[ii][jj], i, j, ['', ...A.split('')], ['', ...B.split('')], A[i - 1] === B[j - 1] ? 'match' : 'mismatch')); }, dp[n][m]);
         }
       }
       push(`LCS length = ${dp[n][m]}`, 0, () => { ws.stage.innerHTML = ''; ws.stage.appendChild(renderTable(n + 1, m + 1, (i, j) => dp[i][j], n, m, ['', ...A.split('')], ['', ...B.split('')])); }, dp[n][m]);
