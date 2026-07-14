@@ -114,7 +114,13 @@ const ArrayModule = (() => {
       complexity: META.reverse,
       applications: META.reverse.applications, advantages: META.reverse.advantages, disadvantages: META.reverse.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Pointer L' }, { color: 'var(--accent-3)', label: 'Pointer R' }, { color: 'var(--accent-2)', label: 'In window / included' }]
+      legend: [
+        { color: 'var(--compare-lo)', label: 'Pointer L / sum too low' },
+        { color: 'var(--accent-3)', label: 'Pointer R' },
+        { color: 'var(--compare-hi)', label: 'Sum too high' },
+        { color: 'var(--accent-2)', label: 'In window / included' },
+        { color: 'var(--success)', label: 'Result found' }
+      ]
     });
     state = { mode: 'reverse', arr: [], controls };
     controls.syncFields();
@@ -163,7 +169,12 @@ const ArrayModule = (() => {
         comparisons++;
         const area = Math.min(a[l], a[r]) * (r - l);
         best = Math.max(best, area);
-        push(`min(${a[l]},${a[r]})×${r - l} = ${area} → best=${best}`, 2, () => { setPtr(l, 'L'); setPtr(r, 'R'); }, best);
+        push(`min(${a[l]},${a[r]})×${r - l} = ${area} → best=${best}`, 2, () => {
+          setPtr(l, 'L'); setPtr(r, 'R');
+          if (a[l] === a[r]) { cellEls[l].classList.add('compare'); cellEls[r].classList.add('compare'); }
+          else if (a[l] < a[r]) { cellEls[l].classList.add('compare-lo'); cellEls[r].classList.add('compare-hi'); }
+          else { cellEls[r].classList.add('compare-lo'); cellEls[l].classList.add('compare-hi'); }
+        }, best);
         if (a[l] < a[r]) l++; else r--;
       }
       push(`Max water container = ${best}`, 0, () => {}, best);
@@ -175,7 +186,11 @@ const ArrayModule = (() => {
       while (l < r) {
         comparisons++;
         const sum = indexed[l].v + indexed[r].v;
-        push(`a[${indexed[l].i}]+a[${indexed[r].i}] = ${sum} vs target ${target}`, 3, () => { setPtr(indexed[l].i, 'L'); setPtr(indexed[r].i, 'R'); });
+        push(`a[${indexed[l].i}]+a[${indexed[r].i}] = ${sum} vs target ${target}`, 3, () => {
+          setPtr(indexed[l].i, 'L'); setPtr(indexed[r].i, 'R');
+          const cls = sum === target ? 'active' : sum < target ? 'compare-lo' : 'compare-hi';
+          cellEls[indexed[l].i].classList.add(cls); cellEls[indexed[r].i].classList.add(cls);
+        });
         if (sum === target) { found = [indexed[l].i, indexed[r].i]; break; }
         else if (sum < target) l++; else r--;
       }
