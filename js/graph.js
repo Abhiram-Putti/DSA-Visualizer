@@ -113,6 +113,8 @@ const GraphModule = (() => {
       circle.setAttribute('cx', n.x); circle.setAttribute('cy', n.y); circle.setAttribute('r', '16');
       let fill = 'var(--surface-2)', stroke = 'var(--border-strong)';
       if (f.visited && f.visited.has(n.id)) { fill = 'var(--accent-2-soft)'; stroke = 'var(--accent-2)'; }
+      if (f.compareLo && f.compareLo.has(n.id)) { fill = 'var(--compare-lo-soft)'; stroke = 'var(--compare-lo)'; }
+      else if (f.compareHi && f.compareHi.has(n.id)) { fill = 'var(--compare-hi-soft)'; stroke = 'var(--compare-hi)'; }
       if (f.active === n.id) { fill = 'var(--accent-soft)'; stroke = 'var(--accent)'; }
       if (f.componentColor && f.componentColor.has(n.id)) { stroke = f.componentColor.get(n.id); }
       circle.setAttribute('fill', fill); circle.setAttribute('stroke', stroke); circle.setAttribute('stroke-width', '2');
@@ -229,7 +231,12 @@ const GraphModule = (() => {
       complexity: META.bfs,
       applications: META.bfs.applications, advantages: META.bfs.advantages, disadvantages: META.bfs.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Active' }, { color: 'var(--accent-2)', label: 'Visited / MST edge' }]
+      legend: [
+        { color: 'var(--accent)', label: 'Active' },
+        { color: 'var(--compare-lo)', label: 'Improves / accepted' },
+        { color: 'var(--compare-hi)', label: 'No improvement / rejected' },
+        { color: 'var(--accent-2)', label: 'Visited / MST edge' }
+      ]
     });
     state = { mode: 'bfs', nodes: [], edges: [], directed: false, weighted: true };
     generateGraph(6);
@@ -289,9 +296,14 @@ const GraphModule = (() => {
         visited.add(u);
         push(`Pick unvisited min-distance node ${label(u)} (dist=${dist.get(u)})`, 2, { dist: new Map(dist), visited: new Set(visited), active: u, frontier: [...dist].filter(([id]) => !visited.has(id) && dist.get(id) < Infinity).map(([id, d]) => `${label(id)}:${d}`) });
         (adj.get(u) || []).forEach(({ to, weight }) => {
-          if (dist.get(u) + weight < dist.get(to)) {
-            dist.set(to, dist.get(u) + weight); usedEdges.add(`${u}-${to}`);
-            push(`Relax ${label(u)}→${label(to)}: dist[${label(to)}] = ${dist.get(to)}`, 4, { dist: new Map(dist), visited: new Set(visited), active: to, activeEdge: `${u}-${to}`, usedEdges: new Set(usedEdges) });
+          const candidate = dist.get(u) + weight;
+          const improves = candidate < dist.get(to);
+          push(`Relax check: dist[${label(u)}]+${weight} = ${candidate} vs current dist[${label(to)}]=${dist.get(to) === Infinity ? '∞' : dist.get(to)}`, 4,
+            { dist: new Map(dist), visited: new Set(visited), active: u, activeEdge: `${u}-${to}`,
+              compareLo: improves ? new Set([to]) : new Set(), compareHi: improves ? new Set() : new Set([to]) });
+          if (improves) {
+            dist.set(to, candidate); usedEdges.add(`${u}-${to}`);
+            push(`Relax ${label(u)}→${label(to)}: dist[${label(to)}] = ${dist.get(to)}`, 4, { dist: new Map(dist), visited: new Set(visited), active: u, compareLo: new Set([to]), activeEdge: `${u}-${to}`, usedEdges: new Set(usedEdges) });
           }
         });
       }
@@ -323,8 +335,12 @@ const GraphModule = (() => {
       const mstEdges = new Set();
       push('Sort all edges by weight', 0, {});
       sorted.forEach(e => {
-        push(`Consider edge ${label(e.from)}→${label(e.to)} (w=${e.weight})`, 1, { mstEdges: new Set(mstEdges), activeEdge: `${e.from}-${e.to}` });
-        if (find(e.from) !== find(e.to)) {
+        const wouldCycle = find(e.from) === find(e.to);
+        push(`Consider edge ${label(e.from)}→${label(e.to)} (w=${e.weight})`, 1,
+          { mstEdges: new Set(mstEdges), activeEdge: `${e.from}-${e.to}`,
+            compareLo: wouldCycle ? new Set() : new Set([e.from, e.to]),
+            compareHi: wouldCycle ? new Set([e.from, e.to]) : new Set() });
+        if (!wouldCycle) {
           union(e.from, e.to); mstEdges.add(`${e.from}-${e.to}`);
           push(`No cycle → add to MST`, 3, { mstEdges: new Set(mstEdges), activeEdge: `${e.from}-${e.to}` });
         } else {
