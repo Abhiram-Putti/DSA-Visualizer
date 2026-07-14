@@ -126,7 +126,8 @@ const SearchingModule = (() => {
       applications: META.linear.applications, advantages: META.linear.advantages, disadvantages: META.linear.disadvantages,
       extraControls: controls.extra,
       legend: [
-        { color: 'var(--accent)', label: 'Current' },
+        { color: 'var(--compare-lo)', label: 'Current · below target' },
+        { color: 'var(--compare-hi)', label: 'Current · above target' },
         { color: 'var(--accent-2)', label: 'Visited' },
         { color: 'var(--success)', label: 'Found' },
         { color: 'var(--surface-3)', label: 'Excluded' }
@@ -159,7 +160,7 @@ const SearchingModule = (() => {
         comparisons++; visited++;
         push(`Check index ${i}: a[${i}]=${a[i]} vs target ${target}`, 1, () => {
           for (let k = 0; k < i; k++) cellEls[k].classList.add('visited');
-          cellEls[i].classList.add('active');
+          cellEls[i].classList.add(a[i] === target ? 'active' : a[i] < target ? 'compare-lo' : 'compare-hi');
         });
         if (a[i] === target) { found = i; break; }
       }
@@ -174,7 +175,7 @@ const SearchingModule = (() => {
         push(`mid = (${lo}+${hi})/2 = ${mid} → a[${mid}]=${a[mid]}`, 2, () => {
           for (let k = 0; k < lo; k++) cellEls[k].classList.add('excluded');
           for (let k = hi + 1; k < a.length; k++) cellEls[k].classList.add('excluded');
-          cellEls[mid].classList.add('active');
+          cellEls[mid].classList.add(a[mid] === target ? 'active' : a[mid] < target ? 'compare-lo' : 'compare-hi');
           cellEls[lo].setAttribute('data-ptr', 'lo'); cellEls[lo].classList.add('pointer-l');
           cellEls[hi].setAttribute('data-ptr', 'hi'); cellEls[hi].classList.add('pointer-r');
         });
