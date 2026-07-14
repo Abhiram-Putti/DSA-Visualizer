@@ -39,7 +39,7 @@ const LinkedListModule = (() => {
     const row = el('div', { style: 'display:flex; align-items:center; flex-wrap:wrap; gap:4px; padding:12px 0;' });
     frame.list.forEach((v, i) => {
       const isActive = frame.activeIdx === i;
-      const box = el('div', { class: `node-box ${isActive ? 'active pop-in' : ''} ${frame.visited && frame.visited.includes(i) ? 'visited' : ''}` }, [document.createTextNode(String(v))]);
+      const box = el('div', { class: `node-box ${isActive ? (frame.activeCls || 'active') + ' pop-in' : ''} ${frame.visited && frame.visited.includes(i) ? 'visited' : ''}` }, [document.createTextNode(String(v))]);
       row.appendChild(box);
       if (i < frame.list.length - 1) {
         row.appendChild(el('span', { class: 'ptr-arrow mono', text: state.mode === 'doubly' ? ' ⇄ ' : ' → ' }));
@@ -61,7 +61,7 @@ const LinkedListModule = (() => {
   function pushHistory(desc, line, extra = {}) {
     history.push({
       desc, line, counters: { nodes: state.list.length, ops: history.length + 1, timer: history.length },
-      list: state.list.slice(), activeIdx: extra.activeIdx ?? -1, visited: extra.visited || [],
+      list: state.list.slice(), activeIdx: extra.activeIdx ?? -1, visited: extra.visited || [], activeCls: extra.activeCls,
       render() { drawFrame(this); }
     });
     ws.player.load(history);
@@ -99,7 +99,7 @@ const LinkedListModule = (() => {
     for (let i = 0; i < state.list.length; i++) {
       visited.push(i);
       const found = state.list[i] == v;
-      pushHistory(found ? `Found ${v} at index ${i}!` : `node[${i}]=${state.list[i]} ≠ ${v}, continue`, 6, { activeIdx: i, visited: visited.slice() });
+      pushHistory(found ? `Found ${v} at index ${i}!` : `node[${i}]=${state.list[i]} ≠ ${v}, continue`, 6, { activeIdx: i, visited: visited.slice(), activeCls: found ? 'match' : 'compare-hi' });
       if (found) return;
     }
     toast(`${v} not found in list`, 'info');
@@ -171,7 +171,12 @@ const LinkedListModule = (() => {
       complexity: META.singly,
       applications: META.singly.applications, advantages: META.singly.advantages, disadvantages: META.singly.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Active Node' }, { color: 'var(--accent-2)', label: 'Visited' }]
+      legend: [
+        { color: 'var(--accent)', label: 'Active Node' },
+        { color: 'var(--success)', label: 'Match found' },
+        { color: 'var(--compare-hi)', label: 'Checking · no match' },
+        { color: 'var(--accent-2)', label: 'Visited' }
+      ]
     });
     state = { mode: 'singly', list: [10, 20, 30] };
     ws.startBtn.style.display = 'none';
