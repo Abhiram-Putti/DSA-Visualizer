@@ -51,8 +51,8 @@ const TreeModule = (() => {
   function rotateLeft(x) { const y = x.right; x.right = y.left; y.left = x; updateHeight(x); updateHeight(y); return y; }
 
   function bstInsert(root, val, trace) {
-    if (!root) { const n = newNode(val); trace.push({ id: n.id, note: `Insert ${val} here` }); return n; }
-    trace.push({ id: root.id, note: `${val} ${val < root.val ? '<' : val > root.val ? '>' : '='} ${root.val}` });
+    if (!root) { const n = newNode(val); trace.push({ id: n.id, note: `Insert ${val} here`, dir: 'eq' }); return n; }
+    trace.push({ id: root.id, note: `${val} ${val < root.val ? '<' : val > root.val ? '>' : '='} ${root.val}`, dir: val < root.val ? 'hi' : val > root.val ? 'lo' : 'eq' });
     if (val < root.val) root.left = bstInsert(root.left, val, trace);
     else if (val > root.val) root.right = bstInsert(root.right, val, trace);
     else return root;
@@ -61,8 +61,8 @@ const TreeModule = (() => {
   }
 
   function avlInsert(root, val, trace, rotations) {
-    if (!root) { const n = newNode(val); trace.push({ id: n.id, note: `Insert ${val} here` }); return n; }
-    trace.push({ id: root.id, note: `${val} ${val < root.val ? '<' : '>'} ${root.val}` });
+    if (!root) { const n = newNode(val); trace.push({ id: n.id, note: `Insert ${val} here`, dir: 'eq' }); return n; }
+    trace.push({ id: root.id, note: `${val} ${val < root.val ? '<' : '>'} ${root.val}`, dir: val < root.val ? 'hi' : 'lo' });
     if (val < root.val) root.left = avlInsert(root.left, val, trace, rotations);
     else if (val > root.val) root.right = avlInsert(root.right, val, trace, rotations);
     else return root;
@@ -78,14 +78,14 @@ const TreeModule = (() => {
   function bstFindMin(root) { while (root.left) root = root.left; return root; }
   function bstDelete(root, val, trace) {
     if (!root) return null;
-    trace.push({ id: root.id, note: `${val} ${val < root.val ? '<' : val > root.val ? '>' : '=='} ${root.val}` });
+    trace.push({ id: root.id, note: `${val} ${val < root.val ? '<' : val > root.val ? '>' : '=='} ${root.val}`, dir: val < root.val ? 'hi' : val > root.val ? 'lo' : 'eq' });
     if (val < root.val) root.left = bstDelete(root.left, val, trace);
     else if (val > root.val) root.right = bstDelete(root.right, val, trace);
     else {
       if (!root.left) return root.right;
       if (!root.right) return root.left;
       const succ = bstFindMin(root.right);
-      trace.push({ id: succ.id, note: `Inorder successor = ${succ.val}` });
+      trace.push({ id: succ.id, note: `Inorder successor = ${succ.val}`, dir: 'eq' });
       root.val = succ.val;
       root.right = bstDelete(root.right, succ.val, trace);
     }
@@ -106,7 +106,7 @@ const TreeModule = (() => {
     return positions;
   }
 
-  function renderTree(root, activeId, doneSet, note) {
+  function renderTree(root, activeId, doneSet, note, activeDir, nodeClassMap) {
     ws.stage.innerHTML = '';
     if (!root) { ws.stage.appendChild(el('div', { class: 'empty-state', text: 'Tree is empty. Insert a value to begin.' })); return; }
     const positions = layout(root);
@@ -144,7 +144,9 @@ const TreeModule = (() => {
 
     positions.forEach((p, id) => {
       const { cx, cy } = coord(id);
-      const cls = id === activeId ? 'active' : (doneSet && doneSet.has(id)) ? 'visited' : '';
+      const dirCls = activeDir === 'lo' ? 'compare-lo' : activeDir === 'hi' ? 'compare-hi' : activeDir === 'eq' ? 'match' : 'active';
+      const cls = (nodeClassMap && nodeClassMap.has(id)) ? nodeClassMap.get(id) :
+        id === activeId ? dirCls : (doneSet && doneSet.has(id)) ? 'visited' : '';
       wrap.appendChild(el('div', {
         class: `node-box ${cls}`,
         style: `position:absolute; left:${cx - 20}px; top:${cy - 18}px; width:40px; height:36px; border-radius:50%; justify-content:center;`
@@ -162,7 +164,7 @@ const TreeModule = (() => {
       steps.push({
         desc: t.note, line: 1,
         counters: { comparisons: i + 1, height: h(root), timer: i },
-        render: () => renderTree(root, t.id, doneSet, opLabel)
+        render: () => renderTree(root, t.id, doneSet, opLabel, t.dir)
       });
       doneSet.add(t.id);
     });
@@ -193,7 +195,7 @@ const TreeModule = (() => {
   function doSearch(val) {
     const trace = []; let found = false; let n = state.root;
     while (n) {
-      trace.push({ id: n.id, note: `${val} ${val < n.val ? '<' : val > n.val ? '>' : '=='} ${n.val}` });
+      trace.push({ id: n.id, note: `${val} ${val < n.val ? '<' : val > n.val ? '>' : '=='} ${n.val}`, dir: val < n.val ? 'hi' : val > n.val ? 'lo' : 'eq' });
       if (val === n.val) { found = true; break; }
       n = val < n.val ? n.left : n.right;
     }
@@ -242,6 +244,7 @@ const TreeModule = (() => {
     steps.push(mkHeapStep(`Insert ${val} at end (index ${i})`, 0, i));
     while (i > 0) {
       const parent = Math.floor((i - 1) / 2);
+      steps.push(mkHeapStep(`Compare a[${i}]=${state.heap[i]} with parent a[${parent}]=${state.heap[parent]}`, 1, undefined, [parent, i]));
       if (state.heap[parent] < state.heap[i]) {
         [state.heap[parent], state.heap[i]] = [state.heap[i], state.heap[parent]];
         steps.push(mkHeapStep(`Bubble up: swap with parent (index ${parent})`, 1, parent));
@@ -260,7 +263,9 @@ const TreeModule = (() => {
     let i = 0;
     while (true) {
       let largest = i, l = 2 * i + 1, r = 2 * i + 2;
+      if (l < state.heap.length) steps.push(mkHeapStep(`Compare a[${i}]=${state.heap[i]} with left child a[${l}]=${state.heap[l]}`, 2, undefined, [i, l]));
       if (l < state.heap.length && state.heap[l] > state.heap[largest]) largest = l;
+      if (r < state.heap.length) steps.push(mkHeapStep(`Compare current largest with right child a[${r}]=${state.heap[r]}`, 2, undefined, [largest, r]));
       if (r < state.heap.length && state.heap[r] > state.heap[largest]) largest = r;
       if (largest === i) break;
       [state.heap[i], state.heap[largest]] = [state.heap[largest], state.heap[i]];
@@ -270,14 +275,22 @@ const TreeModule = (() => {
     steps.push(mkHeapStep(`Heap restored. Extracted max = ${max}`, 2));
     ws.player.load(steps); ws.enableTransport(); ws.player.play();
   }
-  function mkHeapStep(desc, line, activeIdx) {
+  function mkHeapStep(desc, line, activeIdx, comparePair) {
     const snapshot = state.heap.slice();
     return {
       desc, line, counters: { comparisons: 0, height: Math.ceil(Math.log2(snapshot.length + 1)), timer: 0 },
       render: () => {
         const { root, baseId } = heapArrayToTree(snapshot);
         const activeId = (activeIdx !== undefined && baseId !== null) ? baseId + activeIdx : null;
-        renderTree(root, activeId, new Set(), `heap: [${snapshot.join(', ')}]`);
+        let nodeClassMap = null;
+        if (comparePair && baseId !== null) {
+          const [ia, ib] = comparePair;
+          nodeClassMap = new Map();
+          if (snapshot[ia] === snapshot[ib]) { nodeClassMap.set(baseId + ia, 'compare'); nodeClassMap.set(baseId + ib, 'compare'); }
+          else if (snapshot[ia] > snapshot[ib]) { nodeClassMap.set(baseId + ia, 'compare-hi'); nodeClassMap.set(baseId + ib, 'compare-lo'); }
+          else { nodeClassMap.set(baseId + ia, 'compare-lo'); nodeClassMap.set(baseId + ib, 'compare-hi'); }
+        }
+        renderTree(root, activeId, new Set(), `heap: [${snapshot.join(', ')}]`, undefined, nodeClassMap);
       }
     };
   }
@@ -359,7 +372,13 @@ const TreeModule = (() => {
       complexity: META.bst,
       applications: META.bst.applications, advantages: META.bst.advantages, disadvantages: META.bst.disadvantages,
       extraControls: controls.extra,
-      legend: [{ color: 'var(--accent)', label: 'Active node' }, { color: 'var(--accent-2)', label: 'Visited' }]
+      legend: [
+        { color: 'var(--compare-hi)', label: 'Node larger · go left' },
+        { color: 'var(--compare-lo)', label: 'Node smaller · go right' },
+        { color: 'var(--success)', label: 'Match found' },
+        { color: 'var(--accent)', label: 'Visiting (traversal)' },
+        { color: 'var(--accent-2)', label: 'Visited' }
+      ]
     });
     state = { mode: 'bst', root: null, heap: [] };
     nodeSeq = 1;
