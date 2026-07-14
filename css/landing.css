@@ -1,0 +1,120 @@
+/* ==========================================================================
+   LANDING — home view hero, stats, feature grid
+   ========================================================================== */
+
+.hero{
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 56px 32px 48px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(600px 260px at 15% 0%, var(--accent-soft), transparent 60%),
+    radial-gradient(500px 240px at 90% 20%, var(--accent-2-soft), transparent 55%),
+    var(--bg-elevated);
+  border: 1px solid var(--border);
+  isolation: isolate;
+}
+.hero::before{
+  content: "";
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0);
+  background-size: 26px 26px;
+  opacity: .5;
+  mask-image: radial-gradient(circle at 30% 20%, black, transparent 70%);
+  z-index: -1;
+}
+.hero-spot{
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(circle 240px at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.06), transparent 70%);
+  transition: background .1s linear;
+}
+
+.hero-eyebrow{
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid rgba(255,138,61,0.25);
+  padding: 5px 12px; border-radius: 20px;
+  margin-bottom: 18px;
+}
+.hero-eyebrow .dot{ width:6px; height:6px; border-radius:50%; background: var(--accent); animation: pulseGlow 1.6s ease infinite; }
+
+.hero h1{
+  font-size: clamp(28px, 4.2vw, 46px);
+  line-height: 1.08;
+  max-width: 15ch;
+  margin-bottom: 16px;
+}
+.hero h1 .accent-text{
+  background: linear-gradient(100deg, var(--accent), var(--accent-2) 60%, var(--accent-3));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.hero p.lede{
+  font-size: 15.5px;
+  max-width: 56ch;
+  color: var(--text-dim);
+  margin-bottom: 26px;
+}
+
+.hero-actions{ display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
+.btn-magnetic{ transition: transform .18s cubic-bezier(.34,1.56,.64,1); will-change: transform; }
+
+.hero-stats{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 18px;
+  max-width: 640px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border);
+}
+.hero-stat .num{
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 24px; color: var(--text);
+  display: flex; align-items: baseline; gap: 2px;
+}
+.hero-stat .num .unit{ font-size: 13px; color: var(--text-faint); font-weight: 500; }
+.hero-stat .label{ font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+
+/* ---------- Section headers ---------- */
+.section-head{ margin: 40px 0 16px; }
+.section-head .eyebrow{ display:block; margin-bottom: 4px; }
+.section-head h2{ font-size: 19px; margin-bottom: 4px; }
+.section-head p{ font-size: 13px; margin: 0; max-width: 60ch; }
+
+/* ---------- Feature grid ---------- */
+.feature-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.feature-card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.feature-card:hover{ transform: translateY(-2px); border-color: var(--border-strong); box-shadow: var(--shadow-1); }
+.feature-card .icon-tile{
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent-strong);
+  margin-bottom: 12px;
+}
+.feature-card .icon-tile svg{ width: 17px; height: 17px; }
+.feature-card h4{ font-size: 14px; margin-bottom: 4px; }
+.feature-card p{ font-size: 12.5px; margin: 0; }
+
+/* ---------- Marquee-ish category strip label ---------- */
+.category-count{
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);
+  border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px;
+}
+
+@media (max-width: 640px){
+  .hero{ padding: 40px 20px 34px; }
+  .hero-stats{ grid-template-columns: repeat(2, 1fr); }
+}
