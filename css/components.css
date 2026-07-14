@@ -301,6 +301,10 @@ input:focus, select:focus, textarea:focus{ border-color: var(--accent); }
   transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .15s ease;
 }
 .node-box.active{ border-color: var(--accent); background: linear-gradient(160deg, var(--accent-soft), var(--surface)); box-shadow: var(--shadow-glow); transform: scale(1.05); z-index:2; }
+.node-box.compare-lo{ border-color: var(--compare-lo); background: linear-gradient(160deg, var(--compare-lo-soft), var(--surface)); box-shadow: 0 0 14px 0 var(--compare-lo-soft), 0 0 0 1px var(--compare-lo); color: var(--compare-lo); transform: scale(1.05); z-index:2; }
+.node-box.compare-hi{ border-color: var(--compare-hi); background: linear-gradient(160deg, var(--compare-hi-soft), var(--surface)); box-shadow: 0 0 14px 0 var(--compare-hi-soft), 0 0 0 1px var(--compare-hi); color: var(--compare-hi); transform: scale(1.05); z-index:2; }
+.node-box.match{ border-color: var(--success); background: linear-gradient(160deg, var(--success-soft), var(--surface)); box-shadow: 0 0 14px 0 var(--success-soft); }
+.node-box.mismatch{ border-color: var(--danger); background: linear-gradient(160deg, var(--danger-soft), var(--surface)); }
 .node-box.visited{ border-color: var(--accent-2); background: linear-gradient(160deg, var(--accent-2-soft), var(--surface)); }
 .node-box .ptr-arrow{ color: var(--text-faint); }
 
@@ -310,8 +314,12 @@ input:focus, select:focus, textarea:focus{ border-color: var(--accent); }
   border:1px solid var(--border); width:36px; height:32px; text-align:center; color: var(--text-dim);
 }
 .dp-table th{ background: var(--surface-2); color: var(--text-faint); }
-.dp-table td.active{ background: var(--accent-soft); color: var(--text); font-weight:600; }
+.dp-table td.active{ background: var(--accent-soft); color: var(--text); font-weight:600; box-shadow: inset 0 0 0 1px var(--accent); }
 .dp-table td.filled{ background: var(--surface-2); color: var(--text); }
+.dp-table td.match{ background: var(--success-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--success); }
+.dp-table td.mismatch{ background: var(--danger-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--danger); }
+.dp-table td.include{ background: var(--compare-lo-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--compare-lo); }
+.dp-table td.exclude{ background: var(--compare-hi-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--compare-hi); }
 
 /* ---------- Empty state ---------- */
 .empty-state{
@@ -367,5 +375,8 @@ input:focus, select:focus, textarea:focus{ border-color: var(--accent); }
 }
 .rnode .ret{ font-size:10px; color: var(--accent-2); }
 .rnode.calling{ border-color: var(--accent); background: var(--accent-soft); color: var(--text); box-shadow: var(--shadow-glow); }
+.rnode.compare-lo{ border-color: var(--compare-lo); background: var(--compare-lo-soft); color: var(--text); box-shadow: 0 0 14px 0 var(--compare-lo-soft); }
+.rnode.compare-hi{ border-color: var(--compare-hi); background: var(--compare-hi-soft); color: var(--text); box-shadow: 0 0 14px 0 var(--compare-hi-soft); }
+.rnode.match{ border-color: var(--success); background: var(--success-soft); color: var(--text); box-shadow: 0 0 14px 0 var(--success-soft); }
 .rnode.returned{ border-color: var(--accent-2); background: var(--accent-2-soft); color: var(--text); }
 .rnode.pending{ opacity:.45; }
