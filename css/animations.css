@@ -38,6 +38,5 @@
 }
 .shake{ animation: shake .4s ease; }
 
-.bar{ transition: height .18s ease, background-color .15s ease, transform .15s ease; }
-.array-cell{ transition: background-color .15s ease, border-color .15s ease, transform .15s ease; }
-.node-box{ transition: background-color .15s ease, border-color .15s ease, transform .2s ease; }
+/* Bar / cell / node transitions now live alongside their color rules in
+   components.css (keeps the easing curve and the color together). */
