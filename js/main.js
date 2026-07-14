@@ -18,7 +18,12 @@
     dp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>',
     recursion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 1 1 8 8"/><path d="M4 12l3-3M4 12l3 3"/></svg>',
     star: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1z"/></svg>',
-    starOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1z"/></svg>'
+    starOutline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1z"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4.5v15l13-7.5-13-7.5z"/></svg>',
+    code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg>',
+    gauge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12l4-3M4 13a8 8 0 1 1 16 0"/></svg>',
+    shuffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h3.6a3 3 0 0 1 2.5 1.4L15.9 17a3 3 0 0 0 2.5 1.4H21M4 18h3.6a3 3 0 0 0 2.5-1.4l.6-.9M14.5 6.9l.6-.9A3 3 0 0 1 17.6 4.6H21M18 3l3 2.6-3 2.4M18 15l3 2.6-3 2.4"/></svg>',
+    arrowRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
   };
 
   const ROUTES = [
@@ -109,14 +114,71 @@
   }
 
   /* ---------- Home / landing ---------- */
+  const FEATURES = [
+    { icon: 'play', title: 'Step-through player', desc: 'Play, pause, step forward or back, restart, and scrub speed — every algorithm runs like code under a debugger.' },
+    { icon: 'code', title: 'Pseudocode & source', desc: 'The exact line being executed highlights live, alongside real JavaScript for the same routine.' },
+    { icon: 'gauge', title: 'Complexity readouts', desc: 'Best, average, and worst-case time — plus space complexity — shown per algorithm, not bolted on after.' },
+    { icon: 'shuffle', title: 'Custom & random input', desc: 'Type your own dataset or generate one instantly to see how the same logic behaves differently.' }
+  ];
+
   function renderHome() {
     const view = $('#view-home');
     view.innerHTML = '';
-    view.appendChild(el('div', { class: 'view-header' }, [
-      el('div', {}, [
-        el('h1', { text: 'DSA Visualizer' }),
-        el('p', { class: 'view-desc', text: 'A debugger for data structures & algorithms — step through execution, watch every comparison, and read the pseudocode as it runs.' })
+
+    /* ----- Hero ----- */
+    const hero = el('section', { class: 'hero' }, [
+      el('div', { class: 'hero-spot' }),
+      el('span', { class: 'hero-eyebrow' }, [
+        el('span', { class: 'dot' }),
+        document.createTextNode('Client-side visualization engine')
+      ]),
+      el('h1', {}, [
+        document.createTextNode('Understand algorithms by '),
+        el('span', { class: 'accent-text', text: 'watching them think.' })
+      ]),
+      el('p', { class: 'lede', text: 'A debugger for data structures & algorithms — step through execution one comparison at a time, read the pseudocode as it runs, and see exactly why the complexity is what it is.' }),
+      el('div', { class: 'hero-actions' }, [
+        el('button', { class: 'btn btn-primary btn-magnetic', onclick: () => navigate('sorting') }, [
+          document.createTextNode('Explore the library'),
+          el('span', { html: ICONS.arrowRight })
+        ]),
+        el('button', { class: 'btn btn-magnetic', onclick: () => scrollToShortcuts() }, [
+          document.createTextNode('Keyboard shortcuts')
+        ])
+      ]),
+      el('div', { class: 'hero-stats' }, [
+        heroStat(String(ROUTES.length - 1), '', 'Visualizers'),
+        heroStat('3', '', 'Categories'),
+        heroStat('60', 'fps', 'Animation'),
+        heroStat('100', '%', 'Runs in-browser')
       ])
+    ]);
+    wireHeroSpotlight(hero);
+    wireMagnetic(hero);
+    view.appendChild(hero);
+
+    /* ----- Feature highlights ----- */
+    view.appendChild(el('div', { class: 'section-head' }, [
+      el('span', { class: 'eyebrow', text: 'How it works' }),
+      el('h2', { text: 'One engine, every visualization' })
+    ]));
+    const featureGrid = el('div', { class: 'feature-grid' });
+    FEATURES.forEach(f => {
+      featureGrid.appendChild(el('div', { class: 'feature-card' }, [
+        el('div', { class: 'icon-tile', html: ICONS[f.icon] }),
+        el('h4', { text: f.title }),
+        el('p', { text: f.desc })
+      ]));
+    });
+    view.appendChild(featureGrid);
+
+    /* ----- Algorithm library ----- */
+    view.appendChild(el('div', { class: 'section-head', style: 'display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:10px;' }, [
+      el('div', {}, [
+        el('span', { class: 'eyebrow', text: 'Library' }),
+        el('h2', { text: 'Pick a structure or algorithm' })
+      ]),
+      el('span', { class: 'category-count', text: `${ROUTES.length - 1} visualizers` })
     ]));
     const grid = el('div', { class: 'card-grid' });
     ROUTES.filter(r => r.id !== 'home').forEach(r => {
@@ -132,7 +194,8 @@
     });
     view.appendChild(grid);
 
-    view.appendChild(el('div', { class: 'panel', style: 'margin-top:20px; max-width:520px;' }, [
+    /* ----- Shortcuts ----- */
+    view.appendChild(el('div', { class: 'panel', id: 'shortcutsPanel', style: 'margin-top:28px; max-width:520px;' }, [
       el('h3', { text: 'Keyboard Shortcuts' }),
       el('div', { class: 'shortcut-grid' }, [
         rowShortcut('Jump to section', '1–0'),
@@ -142,6 +205,45 @@
         rowShortcut('Close panel / sidebar', 'Esc')
       ])
     ]));
+  }
+
+  function heroStat(value, unit, label) {
+    return el('div', { class: 'hero-stat' }, [
+      el('div', { class: 'num' }, [
+        document.createTextNode(value),
+        unit ? el('span', { class: 'unit', text: unit }) : null
+      ]),
+      el('div', { class: 'label', text: label })
+    ]);
+  }
+
+  function scrollToShortcuts() {
+    const panel = $('#shortcutsPanel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* Soft radial spotlight that tracks the pointer across the hero panel. */
+  function wireHeroSpotlight(hero) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    hero.addEventListener('pointermove', (e) => {
+      const rect = hero.getBoundingClientRect();
+      hero.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+      hero.style.setProperty('--my', `${e.clientY - rect.top}px`);
+    });
+  }
+
+  /* Buttons drift a few px toward the cursor while hovered. */
+  function wireMagnetic(root) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    root.querySelectorAll('.btn-magnetic').forEach(btn => {
+      btn.addEventListener('pointermove', (e) => {
+        const r = btn.getBoundingClientRect();
+        const x = (e.clientX - r.left - r.width / 2) * 0.25;
+        const y = (e.clientY - r.top - r.height / 2) * 0.25;
+        btn.style.transform = `translate(${x}px, ${y}px)`;
+      });
+      btn.addEventListener('pointerleave', () => { btn.style.transform = ''; });
+    });
   }
   function rowShortcut(label, key) {
     return el('div', { style: 'display:contents' }, [
@@ -212,9 +314,9 @@
     wireShortcuts();
     navigate('home');
 
+    // Intro sequence disabled — load straight into the app.
     const splash = $('#splash');
-    if (splash) setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 400); }, 350);
-
+    if (splash) splash.remove();
     toast('DSA Visualizer ready — press / to search, 1–0 to jump.', 'success', 3500);
   }
 
