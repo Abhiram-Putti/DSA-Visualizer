@@ -178,7 +178,8 @@ const SortingModule = (() => {
       extraControls: controls.extra,
       legend: [
         { color: 'var(--surface-3)', label: 'Unsorted' },
-        { color: 'var(--accent)', label: 'Comparing' },
+        { color: 'var(--compare-lo)', label: 'Comparing · smaller' },
+        { color: 'var(--compare-hi)', label: 'Comparing · larger' },
         { color: 'var(--danger)', label: 'Swapping' },
         { color: 'var(--accent-3)', label: 'Pivot' },
         { color: 'var(--accent-2)', label: 'Sorted' }
@@ -234,7 +235,18 @@ const SortingModule = (() => {
     barEls[i].querySelector('.bar-label').textContent = v;
   }
 
-  function clearBarClasses() { barEls.forEach(b => b.classList.remove('compare', 'swap', 'sorted', 'pivot', 'current')); }
+  function clearBarClasses() { barEls.forEach(b => b.classList.remove('compare', 'compare-lo', 'compare-hi', 'swap', 'sorted', 'pivot', 'current')); }
+
+  /* Color a comparison by *outcome*, not just by "something is being looked at":
+     the smaller of the two values lights up blue, the larger lights up amber, so
+     you can see which way the comparison resolved without reading the numbers. */
+  function markCompare(i, j, valI, valJ) {
+    if (!barEls[i] || !barEls[j]) return;
+    if (valI === valJ) { barEls[i].classList.add('compare'); barEls[j].classList.add('compare'); return; }
+    const [loIdx, hiIdx] = valI < valJ ? [i, j] : [j, i];
+    barEls[loIdx].classList.add('compare-lo');
+    barEls[hiIdx].classList.add('compare-hi');
+  }
 
   function startRun() {
     const arr = state.array.slice();
@@ -259,7 +271,7 @@ const SortingModule = (() => {
         for (let j = 0; j < a.length - i - 1; j++) {
           comparisons++;
           push(`Compare a[${j}]=${a[j]} and a[${j + 1}]=${a[j + 1]}`, 2, {}, () => {
-            barEls[j].classList.add('compare'); barEls[j + 1].classList.add('compare');
+            markCompare(j, j + 1, a[j], a[j + 1]);
             sorted.forEach(s => barEls[s].classList.add('sorted'));
           });
           if (a[j] > a[j + 1]) {
@@ -283,7 +295,7 @@ const SortingModule = (() => {
         for (let j = i + 1; j < a.length; j++) {
           comparisons++;
           push(`Compare a[${j}]=${a[j]} with current min a[${min}]=${a[min]}`, 3, {}, () => {
-            barEls[j].classList.add('compare'); barEls[min].classList.add('pivot');
+            markCompare(j, min, a[j], a[min]);
             sorted.forEach(s => barEls[s].classList.add('sorted'));
           });
           if (a[j] < a[min]) min = j;
@@ -307,7 +319,7 @@ const SortingModule = (() => {
         push(`Pick key = a[${i}]=${key}`, 1, {}, () => { barEls[i].classList.add('current'); for (let s = 0; s < i; s++) barEls[s].classList.add('sorted'); });
         while (j >= 0 && a[j] > key) {
           comparisons++;
-          push(`a[${j}]=${a[j]} > key(${key}) → shift right`, 2, {}, () => { barEls[j].classList.add('compare'); barEls[j + 1].classList.add('swap'); });
+          push(`a[${j}]=${a[j]} > key(${key}) → shift right`, 2, {}, () => { barEls[j].classList.add(a[j] > key ? 'compare-hi' : 'compare-lo'); barEls[j + 1].classList.add('swap'); });
           a[j + 1] = a[j]; setBarValue(j + 1, a[j + 1], max);
           j--; swaps++;
         }
@@ -327,7 +339,7 @@ const SortingModule = (() => {
         let i = 0, j = 0, k = lo;
         while (i < left.length && j < right.length) {
           comparisons++;
-          push(`Merge: compare ${left[i]} and ${right[j]}`, 4, {}, () => { barEls[lo + i].classList.add('compare'); barEls[mid + 1 + j].classList.add('compare'); });
+          push(`Merge: compare ${left[i]} and ${right[j]}`, 4, {}, () => { markCompare(lo + i, mid + 1 + j, left[i], right[j]); });
           if (left[i] <= right[j]) { a[k] = left[i]; i++; } else { a[k] = right[j]; j++; }
           setBarValue(k, a[k], max); swaps++; k++;
         }
@@ -345,7 +357,7 @@ const SortingModule = (() => {
         let i = lo - 1;
         for (let j = lo; j < hi; j++) {
           comparisons++;
-          push(`Compare a[${j}]=${a[j]} with pivot ${pivot}`, 2, {}, () => { barEls[j].classList.add('compare'); barEls[hi].classList.add('pivot'); });
+          push(`Compare a[${j}]=${a[j]} with pivot ${pivot}`, 2, {}, () => { markCompare(j, hi, a[j], pivot); barEls[hi].classList.add('pivot'); });
           if (a[j] < pivot) {
             i++;
             [a[i], a[j]] = [a[j], a[i]]; swaps++;
@@ -400,7 +412,7 @@ const SortingModule = (() => {
           while (j >= gap && a[j - gap] > temp) {
             comparisons++;
             a[j] = a[j - gap]; setBarValue(j, a[j], max); swaps++;
-            push(`Shift a[${j - gap}] into position ${j}`, 5, {}, () => { barEls[j].classList.add('swap'); barEls[j - gap].classList.add('compare'); });
+            push(`Shift a[${j - gap}] into position ${j}`, 5, {}, () => { barEls[j].classList.add('swap'); barEls[j - gap].classList.add('compare-hi'); });
             j -= gap;
           }
           a[j] = temp; setBarValue(j, temp, max);
