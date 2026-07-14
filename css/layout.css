@@ -146,13 +146,16 @@
 .side-col{ display:flex; flex-direction:column; gap:16px; }
 
 .stage{
-  background: var(--surface);
+  background:
+    radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0) 0 0/22px 22px,
+    var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px;
-  min-height: 320px;
+  padding: 20px;
+  min-height: 340px;
   position: relative;
   overflow: auto;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), var(--shadow-1);
 }
 
 .controls-dock{
