@@ -1,0 +1,196 @@
+/* ==========================================================================
+   INTRO — cinematic boot sequence
+   Ambient color blobs + a particle network that resolves into a small
+   graph cluster behind the wordmark, with a terminal-style status log
+   underneath. Runs once per session (see js/intro.js), always skippable,
+   and collapses to an instant reveal under reduced-motion.
+   ========================================================================== */
+
+.intro{
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 100% at 50% 100%, #0A0C12 0%, #05060A 60%, #030408 100%);
+  overflow: hidden;
+  cursor: pointer;
+}
+.intro.intro-out{
+  animation: introFadeOut .7s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events: none;
+}
+@keyframes introFadeOut{
+  0%{ opacity: 1; filter: blur(0); }
+  100%{ opacity: 0; filter: blur(6px); }
+}
+
+.intro-canvas{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  animation: introCanvasIn 1.4s ease forwards;
+}
+@keyframes introCanvasIn{ to{ opacity: 1; } }
+
+/* Subtle vignette so the edges recede and the center (wordmark) pops */
+.intro-vignette{
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(60% 55% at 50% 46%, transparent 0%, rgba(3,4,8,0.55) 100%);
+}
+
+/* Faint film-grain texture for a premium, non-flat feel */
+.intro-grain{
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.intro-content{
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  padding: 24px;
+  transition: transform .5s cubic-bezier(.4,0,.2,1), opacity .5s ease;
+}
+.intro.intro-out .intro-content{
+  transform: scale(1.06);
+  opacity: 0;
+}
+
+.intro-eyebrow{
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono, monospace); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: #7C879C;
+  opacity: 0;
+  animation: introFadeUp .6s ease .1s forwards;
+}
+.intro-eyebrow .dot{ width:5px; height:5px; border-radius:50%; background: var(--accent, #FF8A3D); }
+
+@keyframes introFadeUp{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: none; }
+}
+
+.intro-wordmark{
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  background: linear-gradient(100deg, #F3F5FA 30%, #B8C0D4 60%, #F3F5FA 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  opacity: 0;
+  filter: blur(10px);
+  animation: introWordIn 1s cubic-bezier(.2,.7,.2,1) .35s forwards, introSheen 2.6s linear 1.4s infinite;
+}
+@keyframes introWordIn{
+  to{ opacity: 1; filter: blur(0); }
+}
+@keyframes introSheen{
+  0%{ background-position: 200% 0; }
+  100%{ background-position: -20% 0; }
+}
+
+.intro-tagline{
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px;
+  color: #6B7488;
+  opacity: 0;
+  animation: introFadeUp .6s ease .6s forwards;
+}
+
+.intro-log{
+  min-height: 18px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  letter-spacing: .02em;
+  color: #8A93A8;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 8px;
+}
+.intro-log .glyph{ color: var(--accent-2, #4FD1C5); font-size: 11px; flex-shrink: 0; }
+.intro-log .txt::after{
+  content: "";
+  display: inline-block;
+  width: 6px; height: 12px; margin-left: 2px;
+  background: var(--accent, #FF8A3D);
+  vertical-align: -2px;
+  animation: introCaret .8s steps(1) infinite;
+}
+.intro-log.line-done .txt::after{ display: none; }
+.intro-log.line-done .glyph{ color: var(--success, #5FD97A); }
+@keyframes introCaret{ 50%{ opacity: 0; } }
+
+.intro-progress-row{
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 4px;
+}
+.intro-progress{
+  width: 220px;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.intro-progress-bar{
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent, #FF8A3D), var(--accent-2, #4FD1C5));
+  box-shadow: 0 0 10px rgba(255,138,61,.5);
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+}
+.intro-progress-pct{
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: #5B6478;
+  min-width: 32px;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-skip{
+  position: absolute;
+  bottom: 22px;
+  right: 24px;
+  z-index: 3;
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: #5B6478;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 7px 14px;
+  cursor: pointer;
+  opacity: 0;
+  backdrop-filter: blur(6px);
+  animation: introSkipIn .4s ease 1.1s forwards;
+}
+.intro-skip:hover{ color: #E8EBF2; border-color: rgba(255,255,255,0.3); }
+@keyframes introSkipIn{ to{ opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce){
+  .intro-canvas{ display: none; }
+  .intro-eyebrow, .intro-wordmark, .intro-tagline, .intro-skip{
+    animation: none !important; opacity: 1 !important; filter: none !important; transform: none !important;
+  }
+  .intro-wordmark{ background-position: 0 0; }
+}
+
+@media (max-width: 560px){
+  .intro-progress{ width: 150px; }
+}
+
+/* App shell stays hidden/still under the intro, then eases in once it clears. */
+body.booting .app-shell{ opacity: 0; }
+.app-shell{ opacity: 1; transition: opacity .5s ease .05s; }
