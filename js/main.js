@@ -314,10 +314,15 @@
     wireShortcuts();
     navigate('home');
 
-    // Intro sequence disabled — load straight into the app.
-    const splash = $('#splash');
-    if (splash) splash.remove();
-    toast('DSA Visualizer ready — press / to search, 1–0 to jump.', 'success', 3500);
+    // App shell is fully initialized behind the intro (body.booting hides it via
+    // CSS). BootIntro plays the cinematic sequence — or resolves immediately if
+    // already seen this session / reduced-motion — then we reveal the shell.
+    const reveal = () => {
+      document.body.classList.remove('booting');
+      toast('DSA Visualizer ready — press / to search, 1–0 to jump.', 'success', 3500);
+    };
+    if (typeof BootIntro !== 'undefined') BootIntro.play(reveal);
+    else { const splash = $('#splash'); if (splash) splash.remove(); reveal(); }
   }
 
   document.addEventListener('DOMContentLoaded', boot);
