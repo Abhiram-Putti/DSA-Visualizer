@@ -3,663 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSA Visualizer — Watch Every Algorithm Run Like a Debugger</title>
-<meta name="description" content="Step through sorting, searching, arrays, trees, graphs, dynamic programming and recursion the way a debugger steps through code — one breakpoint at a time. Built with vanilla HTML, CSS and JavaScript.">
+<title>DSA Visualizer — Interactive Algorithm & Data Structure Playground</title>
+<meta name="description" content="A modern, interactive Data Structures & Algorithms visualizer covering sorting, searching, arrays, linked lists, stacks, queues, trees, graphs, dynamic programming, and recursion — built with vanilla HTML, CSS, and JavaScript.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<style>
-/* ==========================================================================
-   DESIGN TOKENS — shares the app's "Debugger console" language:
-   amber = active/current step, teal = visited/settled, violet = structural.
-   These values are kept in lockstep with /css/style.css so the landing page
-   and the app never feel like two different products.
-   ========================================================================== */
-:root{
-  --font-display:'Space Grotesk','Sora',ui-sans-serif,system-ui,sans-serif;
-  --font-body:'Inter',ui-sans-serif,system-ui,sans-serif;
-  --font-mono:'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,monospace;
-
-  --bg:#0B0E14; --bg-elevated:#0F131C; --surface:#131720; --surface-2:#1B212C; --surface-3:#232A38;
-  --border:#262E3D; --border-strong:#333D50;
-  --text:#E8EBF2; --text-dim:#96A0B5; --text-faint:#5B6478;
-
-  --accent:#FF8A3D; --accent-strong:#FFA35E; --accent-soft:rgba(255,138,61,.14);
-  --accent-2:#4FD1C5; --accent-2-soft:rgba(79,209,197,.14);
-  --accent-3:#8C7CFF; --accent-3-soft:rgba(140,124,255,.14);
-  --success:#5FD97A; --danger:#FF5C6C;
-
-  --radius-sm:6px; --radius-md:10px; --radius-lg:16px;
-  --shadow-2:0 10px 30px rgba(0,0,0,.45);
-  color-scheme: dark;
-}
-[data-theme="light"]{
-  --bg:#F3F4F7; --bg-elevated:#FFFFFF; --surface:#FFFFFF; --surface-2:#F0F1F5; --surface-3:#E7E9F0;
-  --border:#DEE1E9; --border-strong:#C9CDDA;
-  --text:#1B1F2A; --text-dim:#565E70; --text-faint:#8991A3;
-  --accent:#DD6A22; --accent-strong:#C85A17; --accent-soft:rgba(221,106,34,.10);
-  --accent-2:#0E9C90; --accent-2-soft:rgba(14,156,144,.10);
-  --accent-3:#6C5CE7; --accent-3-soft:rgba(108,92,231,.10);
-  --success:#1E9E4A; --danger:#D6394A;
-  color-scheme: light;
-}
-
-*,*::before,*::after{ box-sizing:border-box; }
-html{ scroll-behavior:smooth; }
-body{
-  margin:0; background:var(--bg); color:var(--text);
-  font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-}
-h1,h2,h3,h4{ font-family:var(--font-display); color:var(--text); margin:0 0 .5em; letter-spacing:-.01em; }
-p{ color:var(--text-dim); margin:0 0 1em; }
-a{ color:inherit; text-decoration:none; }
-.mono{ font-family:var(--font-mono); }
-img,svg{ display:block; max-width:100%; }
-.container{ max-width:1180px; margin:0 auto; padding:0 24px; }
-section{ position:relative; padding:120px 0; }
-@media (max-width:768px){ section{ padding:72px 0; } }
-
-::selection{ background:var(--accent-soft); color:var(--text); }
-:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-@media (prefers-reduced-motion: reduce){
-  *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
-}
-
-.eyebrow{
-  display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:12px;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--accent-2); background:var(--accent-2-soft);
-  border:1px solid rgba(79,209,197,.25); padding:6px 12px; border-radius:999px; margin-bottom:18px;
-}
-.eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 8px var(--accent-2); }
-
-.btn{
-  display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  padding:13px 24px; border-radius:var(--radius-md); font-family:var(--font-body); font-weight:600; font-size:14.5px;
-  border:1px solid var(--border-strong); cursor:pointer; position:relative; overflow:hidden;
-  transition:transform .25s cubic-bezier(.2,.8,.2,1), border-color .25s, box-shadow .25s, background .25s;
-  white-space:nowrap;
-}
-.btn:active{ transform:scale(.97); }
-.btn-primary{ background:linear-gradient(135deg,var(--accent),var(--accent-strong)); color:#0B0E14; border-color:transparent; box-shadow:0 8px 24px rgba(255,138,61,.28); }
-.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 12px 32px rgba(255,138,61,.4); }
-.btn-ghost{ background:var(--surface); color:var(--text); }
-.btn-ghost:hover{ border-color:var(--accent-2); color:var(--accent-2); transform:translateY(-2px); }
-.btn-ripple{ position:absolute; border-radius:50%; background:rgba(255,255,255,.35); transform:scale(0); animation:ripple .6s ease-out; pointer-events:none; }
-@keyframes ripple{ to{ transform:scale(3); opacity:0; } }
-
-/* ---------------- NAV ---------------- */
-.nav{
-  position:fixed; top:0; left:0; right:0; z-index:200;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 32px; backdrop-filter:blur(16px) saturate(140%);
-  background:rgba(11,14,20,.7); border-bottom:1px solid var(--border);
-  transition:background .3s, border-color .3s;
-}
-[data-theme="light"] .nav{ background:rgba(255,255,255,.75); }
-.brand{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:17px; }
-.brand .rail{ display:flex; gap:3px; }
-.brand .rail span{ width:5px; height:5px; border-radius:50%; background:var(--accent); animation:railPulse 1.8s ease-in-out infinite; }
-.brand .rail span:nth-child(2){ background:var(--accent-2); animation-delay:.2s; }
-.brand .rail span:nth-child(3){ background:var(--accent-3); animation-delay:.4s; }
-@keyframes railPulse{ 0%,100%{ opacity:.35; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.15);} }
-
-.nav-links{ display:flex; align-items:center; gap:30px; font-size:14.5px; font-weight:500; color:var(--text-dim); }
-.nav-links a{ position:relative; padding:4px 0; transition:color .2s; }
-.nav-links a::after{ content:''; position:absolute; left:0; bottom:-3px; width:0; height:2px; background:var(--accent); transition:width .25s; }
-.nav-links a:hover{ color:var(--text); }
-.nav-links a:hover::after{ width:100%; }
-
-.nav-actions{ display:flex; align-items:center; gap:14px; }
-.theme-switch{ width:42px; height:24px; border-radius:999px; background:var(--surface-3); border:1px solid var(--border-strong); position:relative; cursor:pointer; }
-.theme-switch .knob{ position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--accent); transition:transform .3s cubic-bezier(.2,.8,.2,1); }
-[data-theme="light"] .theme-switch .knob{ transform:translateX(18px); }
-.nav-toggle{ display:none; background:none; border:1px solid var(--border-strong); border-radius:8px; width:38px; height:38px; align-items:center; justify-content:center; color:var(--text); cursor:pointer; }
-
-@media (max-width:900px){
-  .nav-links{ position:fixed; top:64px; left:0; right:0; flex-direction:column; align-items:flex-start; gap:0;
-    background:var(--bg-elevated); border-bottom:1px solid var(--border); padding:8px 32px 20px;
-    transform:translateY(-130%); transition:transform .35s cubic-bezier(.2,.8,.2,1); }
-  .nav-links.open{ transform:translateY(0); }
-  .nav-links a{ padding:12px 0; width:100%; border-bottom:1px solid var(--border); }
-  .nav-actions .btn-ghost.gh-only{ display:none; }
-  .nav-toggle{ display:flex; }
-}
-
-/* ---------------- HERO ---------------- */
-.hero{ padding:180px 0 120px; position:relative; overflow:hidden; }
-.hero-bg{ position:absolute; inset:0; z-index:0; overflow:hidden; }
-.hero-bg canvas{ position:absolute; inset:0; width:100%; height:100%; }
-.mesh{ position:absolute; width:900px; height:900px; border-radius:50%; filter:blur(120px); opacity:.35; }
-.mesh-1{ background:var(--accent); top:-380px; left:-280px; animation:drift1 22s ease-in-out infinite; }
-.mesh-2{ background:var(--accent-3); bottom:-420px; right:-260px; animation:drift2 26s ease-in-out infinite; }
-.mesh-3{ background:var(--accent-2); top:30%; left:45%; opacity:.18; animation:drift1 30s ease-in-out infinite reverse; }
-@keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(60px,40px) scale(1.08);} }
-@keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-50px,-30px) scale(1.1);} }
-
-.hero-grid{ position:relative; z-index:2; display:grid; grid-template-columns:1.05fr .95fr; gap:60px; align-items:center; }
-@media (max-width:980px){ .hero-grid{ grid-template-columns:1fr; text-align:center; } .hero-illustration{ margin:0 auto; } }
-
-.hero h1{ font-size:clamp(2.4rem,4.6vw,3.6rem); line-height:1.08; margin-bottom:22px; }
-.hero h1 .grad{ background:linear-gradient(100deg,var(--accent),var(--accent-3) 60%,var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; background-size:200% auto; animation:gradShift 6s linear infinite; }
-@keyframes gradShift{ to{ background-position:200% center; } }
-.hero p.lead{ font-size:17.5px; max-width:520px; margin-bottom:34px; }
-@media (max-width:980px){ .hero p.lead{ margin-left:auto; margin-right:auto; } }
-.hero-actions{ display:flex; gap:16px; flex-wrap:wrap; }
-@media (max-width:980px){ .hero-actions{ justify-content:center; } }
-
-/* hero right: debugger panel illustration */
-.hero-illustration{ position:relative; width:100%; max-width:460px; }
-.panel{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-2); overflow:hidden; animation:floatY 6s ease-in-out infinite;
-}
-@keyframes floatY{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-14px);} }
-.panel-head{ display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface-2); }
-.panel-head span{ width:9px; height:9px; border-radius:50%; }
-.panel-head span:nth-child(1){ background:var(--danger); }
-.panel-head span:nth-child(2){ background:var(--accent); }
-.panel-head span:nth-child(3){ background:var(--success); }
-.panel-head .file{ margin-left:10px; font-family:var(--font-mono); font-size:12px; color:var(--text-faint); }
-
-.panel-body{ padding:20px 20px 24px; }
-.bars-viz{ display:flex; align-items:flex-end; gap:6px; height:110px; margin-bottom:18px; }
-.bars-viz i{ flex:1; border-radius:4px 4px 0 0; background:var(--surface-3); animation:barMove 3.6s ease-in-out infinite; }
-.bars-viz i:nth-child(1){ height:40%; animation-delay:0s; }
-.bars-viz i:nth-child(2){ height:75%; background:var(--accent); animation-delay:.15s; box-shadow:0 0 14px var(--accent-soft); }
-.bars-viz i:nth-child(3){ height:55%; animation-delay:.3s; }
-.bars-viz i:nth-child(4){ height:90%; animation-delay:.45s; }
-.bars-viz i:nth-child(5){ height:30%; background:var(--accent-2); animation-delay:.6s; }
-.bars-viz i:nth-child(6){ height:65%; animation-delay:.75s; }
-.bars-viz i:nth-child(7){ height:48%; animation-delay:.9s; }
-.bars-viz i:nth-child(8){ height:82%; animation-delay:1.05s; }
-@keyframes barMove{ 0%,100%{ transform:scaleY(1);} 50%{ transform:scaleY(1.25);} }
-
-.code-line{ font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint); display:flex; gap:10px; padding:3px 0; border-left:2px solid transparent; padding-left:10px; }
-.code-line.active{ color:var(--text); border-left-color:var(--accent); background:var(--accent-soft); border-radius:0 4px 4px 0; }
-.code-line .ln{ color:var(--text-faint); width:14px; }
-
-.badge-float{
-  position:absolute; display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px;
-  background:var(--bg-elevated); border:1px solid var(--border-strong); font-family:var(--font-mono); font-size:12px;
-  box-shadow:var(--shadow-2); animation:floatY 5s ease-in-out infinite;
-}
-.badge-1{ top:-18px; right:-10px; color:var(--accent-2); animation-delay:.4s; }
-.badge-2{ bottom:10px; left:-30px; color:var(--accent-3); animation-delay:1s; }
-@media (max-width:560px){ .badge-1{ right:6px; } .badge-2{ left:6px; } }
-
-.scroll-cue{ position:absolute; bottom:36px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-faint); font-family:var(--font-mono); font-size:11px; z-index:2; }
-.scroll-cue .mouse{ width:22px; height:34px; border:1.5px solid var(--border-strong); border-radius:12px; display:flex; justify-content:center; padding-top:6px; }
-.scroll-cue .mouse i{ width:3px; height:6px; background:var(--accent); border-radius:2px; animation:scrollDot 1.8s ease-in-out infinite; }
-@keyframes scrollDot{ 0%{ opacity:1; transform:translateY(0);} 70%{opacity:0;} 100%{ opacity:0; transform:translateY(10px);} }
-
-/* ---------------- REVEAL ---------------- */
-.reveal{ opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
-.reveal.in{ opacity:1; transform:translateY(0); }
-
-/* ---------------- SECTION HEAD ---------------- */
-.section-head{ max-width:640px; margin:0 auto 56px; text-align:center; }
-.section-head h2{ font-size:clamp(1.8rem,3vw,2.4rem); }
-.section-head p{ font-size:16px; }
-
-/* ---------------- FEATURES ---------------- */
-.features-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-@media (max-width:980px){ .features-grid{ grid-template-columns:repeat(2,1fr); } }
-@media (max-width:560px){ .features-grid{ grid-template-columns:1fr; } }
-.f-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:26px 22px;
-  transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s;
-  position:relative; overflow:hidden;
-}
-.f-card::before{ content:''; position:absolute; inset:0; background:radial-gradient(400px circle at var(--mx,50%) var(--my,0%), var(--accent-soft), transparent 60%); opacity:0; transition:opacity .35s; }
-.f-card:hover{ transform:translateY(-6px); border-color:var(--border-strong); box-shadow:var(--shadow-2); }
-.f-card:hover::before{ opacity:1; }
-.f-icon{ width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; background:var(--accent-soft); color:var(--accent); }
-.f-card h3{ font-size:16.5px; margin-bottom:6px; }
-.f-card p{ font-size:13.5px; margin:0; }
-
-/* ---------------- STATS ---------------- */
-.stats{ background:var(--bg-elevated); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
-.stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; text-align:center; }
-@media (max-width:700px){ .stats-grid{ grid-template-columns:repeat(2,1fr); gap:36px 20px; } }
-.stat h3{ font-size:clamp(2rem,4vw,2.8rem); font-family:var(--font-mono); color:var(--accent-2); margin-bottom:4px; }
-.stat p{ font-size:13.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin:0; }
-
-/* ---------------- HOW IT WORKS ---------------- */
-.steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:32px; position:relative; }
-@media (max-width:820px){ .steps{ grid-template-columns:1fr; } }
-.step{ text-align:center; position:relative; }
-.step-num{ width:56px; height:56px; margin:0 auto 20px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:600; font-size:15px; background:var(--surface); border:1px solid var(--border-strong); color:var(--accent); }
-.step h3{ font-size:17px; }
-.step p{ font-size:13.5px; max-width:260px; margin:0 auto; }
-.step-arrow{ position:absolute; top:28px; right:-40px; color:var(--border-strong); }
-@media (max-width:820px){ .step-arrow{ display:none; } }
-
-/* ---------------- WHY ---------------- */
-.why-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-@media (max-width:900px){ .why-grid{ grid-template-columns:repeat(2,1fr); } }
-@media (max-width:560px){ .why-grid{ grid-template-columns:1fr; } }
-.why-card{ display:flex; gap:14px; padding:22px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); transition:border-color .3s, transform .3s; }
-.why-card:hover{ border-color:var(--accent-2); transform:translateY(-3px); }
-.why-icon{ flex-shrink:0; width:38px; height:38px; border-radius:9px; background:var(--accent-2-soft); color:var(--accent-2); display:flex; align-items:center; justify-content:center; }
-.why-card h3{ font-size:15px; margin-bottom:4px; }
-.why-card p{ font-size:13px; margin:0; }
-
-/* ---------------- ALGORITHM CAROUSEL ---------------- */
-.carousel-wrap{ overflow:hidden; position:relative; mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); }
-.carousel-track{ display:flex; gap:18px; width:max-content; animation:scrollX 34s linear infinite; }
-.carousel-wrap:hover .carousel-track{ animation-play-state:paused; }
-@keyframes scrollX{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
-.algo-card{ width:200px; flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px; }
-.algo-card h4{ font-size:13.5px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
-.algo-card .tag{ font-family:var(--font-mono); font-size:10px; color:var(--accent-2); background:var(--accent-2-soft); padding:2px 7px; border-radius:6px; }
-.mini-bars{ display:flex; align-items:flex-end; gap:3px; height:46px; }
-.mini-bars i{ flex:1; background:var(--surface-3); border-radius:2px 2px 0 0; animation:barMove 2.4s ease-in-out infinite; }
-.mini-bars i:nth-child(odd){ background:var(--accent); }
-.mini-bars i:nth-child(3n){ background:var(--accent-3); }
-.mini-dots{ display:flex; gap:8px; align-items:center; justify-content:center; height:46px; }
-.mini-dots i{ width:9px; height:9px; border-radius:50%; background:var(--surface-3); animation:dotPulse 1.6s ease-in-out infinite; }
-.mini-dots i:nth-child(2n){ background:var(--accent-2); animation-delay:.3s; }
-@keyframes dotPulse{ 0%,100%{ transform:scale(1); opacity:.6;} 50%{ transform:scale(1.3); opacity:1;} }
-
-/* ---------------- QUOTES ---------------- */
-.quotes-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-@media (max-width:900px){ .quotes-grid{ grid-template-columns:1fr; } }
-.quote-card{ padding:28px; border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); position:relative; }
-.quote-card::before{ content:'"'; font-family:var(--font-display); font-size:60px; color:var(--accent-soft); position:absolute; top:6px; left:16px; line-height:1; }
-.quote-card p{ font-size:15.5px; color:var(--text); font-style:italic; position:relative; z-index:1; margin-bottom:0; }
-
-/* ---------------- CTA ---------------- */
-.cta{ text-align:center; }
-.cta-box{ position:relative; padding:80px 40px; border-radius:28px; overflow:hidden; background:var(--surface); border:1px solid var(--border); }
-.cta-box .mesh{ opacity:.3; }
-.cta-box h2{ position:relative; z-index:2; font-size:clamp(1.8rem,3.6vw,2.6rem); }
-.cta-box p{ position:relative; z-index:2; max-width:480px; margin:0 auto 30px; }
-.cta-actions{ position:relative; z-index:2; display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
-
-/* ---------------- FOOTER ---------------- */
-footer{ border-top:1px solid var(--border); padding:56px 0 30px; }
-.footer-grid{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:36px; margin-bottom:36px; }
-.footer-links{ display:flex; gap:48px; flex-wrap:wrap; }
-.footer-col h4{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:14px; }
-.footer-col a{ display:block; font-size:13.5px; color:var(--text-dim); margin-bottom:10px; transition:color .2s; }
-.footer-col a:hover{ color:var(--accent-2); }
-.footer-bottom{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-top:1px solid var(--border); padding-top:24px; font-size:12.5px; color:var(--text-faint); }
-</style>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/intro.css">
+<link rel="stylesheet" href="css/landing.css">
 </head>
-<body>
+<body class="booting">
 
-<!-- ============ NAV ============ -->
-<header class="nav">
-  <a href="#top" class="brand">
-    <span class="rail"><span></span><span></span><span></span></span>
-    DSA Visualizer
-  </a>
-  <nav class="nav-links" id="navLinks">
-    <a href="#top">Home</a>
-    <a href="#algorithms">Algorithms</a>
-    <a href="#features">Features</a>
-    <a href="README.md">Documentation</a>
-    <a href="#why">About</a>
-    <a href="#" class="gh-only">GitHub</a>
-  </nav>
-  <div class="nav-actions">
-    <div class="theme-switch" id="themeSwitch" role="button" aria-label="Toggle theme"><div class="knob"></div></div>
-    <a href="#" class="btn btn-ghost gh-only" style="padding:9px 16px;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.76-1.34-1.76-1.1-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.08 1.84 2.83 1.31 3.52 1 .1-.78.42-1.31.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .3Z"/></svg>
-      GitHub
-    </a>
-    <a href="index.html" class="btn btn-primary" style="padding:9px 18px;">Get Started</a>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+<!-- Cinematic boot intro — plays once per session, always skippable -->
+<div class="intro" id="splash" role="status" aria-label="Loading DSA Visualizer">
+  <canvas class="intro-canvas" aria-hidden="true"></canvas>
+  <div class="intro-vignette" aria-hidden="true"></div>
+  <div class="intro-grain" aria-hidden="true"></div>
+  <div class="intro-content">
+    <span class="intro-eyebrow"><span class="dot"></span>Algorithm Visualization Engine</span>
+    <div class="intro-wordmark">DSA Visualizer</div>
+    <div class="intro-tagline">Watch data structures think.</div>
+    <div class="intro-log" id="introLog" aria-hidden="true">
+      <span class="glyph">›</span><span class="txt"></span>
+    </div>
+    <div class="intro-progress-row">
+      <div class="intro-progress"><div class="intro-progress-bar" id="introBar"></div></div>
+      <span class="intro-progress-pct" id="introPct">0%</span>
+    </div>
+    <p class="visually-hidden" aria-live="polite" id="introAnnounce"></p>
+  </div>
+  <button class="intro-skip" type="button">Skip <span aria-hidden="true">↵</span></button>
+</div>
+
+<div class="app-shell">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <button class="btn btn-icon btn-ghost menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
-  </div>
-</header>
-
-<!-- ============ HERO ============ -->
-<section class="hero" id="top">
-  <div class="hero-bg">
-    <canvas id="particles"></canvas>
-    <div class="mesh mesh-1"></div>
-    <div class="mesh mesh-2"></div>
-    <div class="mesh mesh-3"></div>
-  </div>
-
-  <div class="container hero-grid">
-    <div>
-      <span class="eyebrow">Step-through visual debugger for DSA</span>
-      <h1>Master Data Structures &amp; Algorithms <span class="grad">Through Interactive Visualization</span></h1>
-      <p class="lead">Understand complex algorithms with beautiful animations, real-time execution, and step-by-step explanations — like watching a debugger step through your favorite algorithm, one breakpoint at a time.</p>
-      <div class="hero-actions">
-        <a href="index.html" class="btn btn-primary">▶ Start Visualizing</a>
-        <a href="#algorithms" class="btn btn-ghost">📚 Explore Algorithms</a>
-      </div>
+    <div class="brand">
+      <span class="dot-rail"><span></span><span></span><span></span></span>
+      DSA Visualizer
     </div>
-
-    <div class="hero-illustration">
-      <div class="badge-float badge-1">O(n log n)</div>
-      <div class="badge-float badge-2">◆ visited: 12</div>
-      <div class="panel">
-        <div class="panel-head">
-          <span></span><span></span><span></span>
-          <span class="file">merge_sort.js — running</span>
-        </div>
-        <div class="panel-body">
-          <div class="bars-viz" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <div class="code-line"><span class="ln">04</span><span>function merge(left, right) {</span></div>
-          <div class="code-line active"><span class="ln">05</span><span>&nbsp;&nbsp;while (i &lt; left.length) {</span></div>
-          <div class="code-line"><span class="ln">06</span><span>&nbsp;&nbsp;&nbsp;&nbsp;compare(left[i], right[j])</span></div>
-        </div>
-      </div>
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="topSearch" placeholder="Search algorithms & structures…  (press /)" aria-label="Search algorithms">
     </div>
-  </div>
-
-  <div class="scroll-cue"><div class="mouse"><i></i></div>SCROLL</div>
-</section>
-
-<!-- ============ FEATURES ============ -->
-<section id="features">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Coverage</span>
-      <h2>Every core topic, one consistent visual language</h2>
-      <p>Ten visualization modules, all animated with the same breakpoint-driven logic and the same blue/amber comparison coloring — so once you learn to read one, you can read them all.</p>
+    <div class="topbar-actions">
+      <button class="btn btn-icon btn-ghost" id="fullscreenBtn" title="Fullscreen visualization" aria-label="Fullscreen visualization">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+      <div class="switch" id="themeSwitch" title="Toggle dark / light theme" role="button" aria-label="Toggle theme"><div class="knob"></div></div>
     </div>
-    <div class="features-grid" id="featuresGrid">
-      <!-- cards injected by JS from data below -->
-    </div>
-  </div>
-</section>
+  </header>
 
-<!-- ============ STATS ============ -->
-<section class="stats">
-  <div class="container">
-    <div class="stats-grid">
-      <div class="stat reveal"><h3 data-count="40">0</h3><p>Algorithms &amp; Techniques</p></div>
-      <div class="stat reveal"><h3 data-count="10">0</h3><p>Visualization Modules</p></div>
-      <div class="stat reveal"><h3 data-count="25">0</h3><p>Interactive Controls</p></div>
-      <div class="stat reveal"><h3 data-count="50">0</h3><p>Educational Breakpoints</p></div>
-    </div>
-  </div>
-</section>
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar" aria-label="Primary navigation"></nav>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
 
-<!-- ============ HOW IT WORKS ============ -->
-<section>
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Workflow</span>
-      <h2>How it works</h2>
-      <p>Three steps between you and real algorithmic intuition.</p>
-    </div>
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-num">01</div>
-        <h3>Choose an algorithm</h3>
-        <p>Pick from sorting, searching, trees, graphs, DP, recursion and more in the sidebar.</p>
-        <svg class="step-arrow" width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8h34M28 2l6 6-6 6" stroke="currentColor" stroke-width="1.6"/></svg>
-      </div>
-      <div class="step reveal">
-        <div class="step-num">02</div>
-        <h3>Visualize the run</h3>
-        <p>Step forward, step back, or press play — every comparison and swap is shown live in color.</p>
-        <svg class="step-arrow" width="40" height="16" viewBox="0 0 40 16" fill="none"><path d="M0 8h34M28 2l6 6-6 6" stroke="currentColor" stroke-width="1.6"/></svg>
-      </div>
-      <div class="step reveal">
-        <div class="step-num">03</div>
-        <h3>Learn by watching</h3>
-        <p>Read the synced explanation and complexity notes as the algorithm executes.</p>
-      </div>
-    </div>
-  </div>
-</section>
+  <!-- Main content -->
+  <main class="main" id="main">
+    <section class="view active" id="view-home"></section>
+  </main>
 
-<!-- ============ WHY CHOOSE ============ -->
-<section id="why">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Why this project</span>
-      <h2>Built to build real intuition</h2>
-    </div>
-    <div class="why-grid" id="whyGrid"></div>
-  </div>
-</section>
+</div>
 
-<!-- ============ ALGORITHM PREVIEW ============ -->
-<section id="algorithms">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Preview</span>
-      <h2>See it before you run it</h2>
-      <p>A rolling preview of the algorithms waiting inside the visualizer.</p>
-    </div>
-  </div>
-  <div class="carousel-wrap reveal">
-    <div class="carousel-track" id="carouselTrack"></div>
-  </div>
-</section>
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
-<!-- ============ QUOTES ============ -->
-<section>
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow">Philosophy</span>
-      <h2>Why visualization works</h2>
-    </div>
-    <div class="quotes-grid">
-      <div class="quote-card reveal"><p>Visualization makes algorithms easier to understand — you see the "why," not just the "what."</p></div>
-      <div class="quote-card reveal"><p>Learn by watching every operation happen, one breakpoint at a time.</p></div>
-      <div class="quote-card reveal"><p>Build intuition instead of memorizing pseudocode you'll forget in a week.</p></div>
-    </div>
-  </div>
-</section>
+<!-- Core utilities (order matters: utils/workspace before modules, modules before main) -->
+<script src="js/utils.js"></script>
+<script src="js/intro.js"></script>
+<script src="js/workspace.js"></script>
 
-<!-- ============ CTA ============ -->
-<section class="cta">
-  <div class="container">
-    <div class="cta-box reveal">
-      <div class="mesh mesh-1" style="width:500px;height:500px;top:-200px;left:-160px;"></div>
-      <div class="mesh mesh-2" style="width:500px;height:500px;bottom:-220px;right:-140px;"></div>
-      <h2>Ready to explore algorithms?</h2>
-      <p>No sign-up, no install — open the visualizer and start stepping through your first algorithm right now.</p>
-      <div class="cta-actions">
-        <a href="index.html" class="btn btn-primary">Launch Visualizer</a>
-        <a href="#" class="btn btn-ghost">View Source Code</a>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- Algorithm & data-structure modules -->
+<script src="js/sorting.js"></script>
+<script src="js/searching.js"></script>
+<script src="js/array.js" ></script>
+<script src="js/recursion.js"></script>
+<script src="js/linkedlist.js"></script>
+<script src="js/stack.js"></script>
+<script src="js/queue.js"></script>
+<script src="js/tree.js"></script>
+<script src="js/graph.js"></script>
+<script src="js/dp.js"></script>
 
-<!-- ============ FOOTER ============ -->
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <a href="#top" class="brand" style="margin-bottom:10px;">
-          <span class="rail"><span></span><span></span><span></span></span>
-          DSA Visualizer
-        </a>
-        <p style="max-width:260px; font-size:13px;">An interactive playground for learning data structures and algorithms, built with vanilla HTML, CSS and JavaScript.</p>
-      </div>
-      <div class="footer-links">
-        <div class="footer-col">
-          <h4>Project</h4>
-          <a href="#">GitHub</a>
-          <a href="README.md">Documentation</a>
-          <a href="#algorithms">Algorithms</a>
-        </div>
-        <div class="footer-col">
-          <h4>More</h4>
-          <a href="#why">About</a>
-          <a href="README.md">License</a>
-          <a href="index.html">Launch app</a>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© <span id="year"></span> DSA Visualizer. Built with HTML, CSS &amp; JavaScript.</span>
-      <span class="mono">v1.0.0</span>
-    </div>
-  </div>
-</footer>
-
-<script>
-/* ---------- data ---------- */
-/* Mirrors the actual modules shipped in /js — kept in this order so the
-   cards read the same way the app's sidebar groups them. */
-const FEATURES = [
-  ["Sorting","Bubble, selection, insertion, merge, quick, heap, shell and counting sort — watch every comparison resolve in blue vs amber.","M3 17h4v4H3zM10 12h4v9h-4zM17 6h4v15h-4z"],
-  ["Searching","Linear and binary search with live pointer tracking and directional comparison coloring.","M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.35-4.35"],
-  ["Array Algorithms","Two-pointer and sliding-window patterns: Two Sum, Kadane's, longest substring and more.","M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"],
-  ["Graphs","BFS, DFS, Dijkstra, Prim, Kruskal, topological sort, cycle detection and connected components.","M6 6h.01M18 6h.01M6 18h.01M18 18h.01M12 12h.01M6 6l6 6m0 0l6 6m-6-6l6-6m-6 6l-6 6"],
-  ["Trees","Binary search trees, self-balancing AVL rotations, and max-heaps, growing branch by branch.","M12 3v6M12 9l-5 5M12 9l5 5M4 20h5M9 20v-6M15 20h5M15 20v-6"],
-  ["Dynamic Programming","Fibonacci, knapsack, LCS, LIS, coin change and matrix chain multiplication — tables fill cell by cell.","M4 4h16v16H4zM4 10h16M10 4v16"],
-  ["Recursion","Factorial, Tower of Hanoi, recursive binary search and merge-sort call trees, rendered live.","M12 4v16M12 4l-4 4M12 4l4 4M8 20l4-4M16 20l-4-4"],
-  ["Linked Lists","Singly, doubly and circular structures with animated pointers for insert, delete, reverse and search.","M4 12h4m0 0h4m0 0h4m0 0h4M8 8v8M16 8v8"],
-  ["Stacks &amp; Queues","Push/pop, parentheses matching, next-greater-element, circular queues, deques and priority queues.","M4 6h16M4 12h16M4 18h16"]
-];
-const WHY = [
-  ["Interactive Learning","Drive the pace yourself — pause, rewind, and replay any step.","M13 2 3 14h7l-1 8 10-12h-7l1-8z"],
-  ["Real-time Animation","Every operation renders live, synced to the algorithm's actual state.","M12 5v14M5 12l7-7 7 7"],
-  ["Complexity Analysis","Big-O notes shown alongside the run so cost is never a guess.","M4 4h16v16H4zM4 10h16M10 4v16"],
-  ["Step-by-step Execution","Breakpoint-style controls make every line of logic inspectable.","M6 4l12 8-12 8V4z"],
-  ["Professional UI","A clean, IDE-inspired interface that stays out of your way.","M4 6h16M4 12h10M4 18h16"],
-  ["GitHub Ready","Open source, dependency-free, and easy to fork or extend.","M12 .3a12 12 0 0 0-3.79 23.4"]
-];
-const ALGOS = [
-  ["Bubble Sort","O(n²)","bars"],["Merge Sort","O(n log n)","bars"],["Quick Sort","O(n log n)","bars"],
-  ["Binary Search","O(log n)","dots"],["DFS","O(V+E)","dots"],["BFS","O(V+E)","dots"],
-  ["Dijkstra","O(E log V)","dots"],["Kruskal's MST","O(E log E)","dots"],
-  ["AVL Tree","O(log n)","bars"],["Heap Sort","O(n log n)","bars"],["0/1 Knapsack","O(nW)","bars"]
-];
-
-function icon(path){ return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>`; }
-
-document.getElementById('featuresGrid').innerHTML = FEATURES.map(([t,d,p])=>`
-  <div class="f-card reveal">
-    <div class="f-icon">${icon(p)}</div>
-    <h3>${t}</h3>
-    <p>${d}</p>
-  </div>`).join('');
-
-document.getElementById('whyGrid').innerHTML = WHY.map(([t,d,p])=>`
-  <div class="why-card reveal">
-    <div class="why-icon">${icon(p)}</div>
-    <div><h3>${t}</h3><p>${d}</p></div>
-  </div>`).join('');
-
-function algoCard([name,complexity,type]){
-  const viz = type==='bars'
-    ? `<div class="mini-bars">${Array.from({length:7}).map((_,i)=>`<i style="height:${20+((i*37)%70)}%;animation-delay:${i*0.12}s"></i>`).join('')}</div>`
-    : `<div class="mini-dots">${Array.from({length:5}).map((_,i)=>`<i style="animation-delay:${i*0.15}s"></i>`).join('')}</div>`;
-  return `<div class="algo-card"><h4>${name}<span class="tag">${complexity}</span></h4>${viz}</div>`;
-}
-const track = document.getElementById('carouselTrack');
-const doubled = [...ALGOS, ...ALGOS]; // seamless loop
-track.innerHTML = doubled.map(algoCard).join('');
-
-document.getElementById('year').textContent = new Date().getFullYear();
-
-/* ---------- theme toggle ----------
-   Shares the exact storage key/format the app (js/main.js -> Utils.storage)
-   uses, so switching theme here carries straight over into index.html. */
-const root = document.documentElement;
-const themeSwitch = document.getElementById('themeSwitch');
-const THEME_KEY = 'dsa.theme';
-function setTheme(t){ root.setAttribute('data-theme', t); try{ localStorage.setItem(THEME_KEY, JSON.stringify(t)); }catch(e){} }
-themeSwitch.addEventListener('click', ()=> setTheme(root.getAttribute('data-theme')==='dark' ? 'light' : 'dark'));
-let savedTheme = null;
-try{ savedTheme = JSON.parse(localStorage.getItem(THEME_KEY)); }catch(e){}
-if(savedTheme) setTheme(savedTheme);
-
-/* ---------- mobile nav ---------- */
-const navToggle = document.getElementById('navToggle');
-const navLinks = document.getElementById('navLinks');
-navToggle.addEventListener('click', ()=> navLinks.classList.toggle('open'));
-navLinks.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> navLinks.classList.remove('open')));
-
-/* ---------- button ripple ---------- */
-document.querySelectorAll('.btn').forEach(btn=>{
-  btn.addEventListener('click', function(e){
-    const r = document.createElement('span');
-    const rect = this.getBoundingClientRect();
-    r.className = 'btn-ripple';
-    r.style.left = (e.clientX-rect.left)+'px';
-    r.style.top = (e.clientY-rect.top)+'px';
-    this.appendChild(r);
-    setTimeout(()=>r.remove(), 650);
-  });
-});
-
-/* ---------- scroll reveal ---------- */
-const io = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-}, { threshold:.15 });
-document.querySelectorAll('.reveal').forEach((el,i)=>{ el.style.transitionDelay = (i%4*0.08)+'s'; io.observe(el); });
-
-/* ---------- animated counters ---------- */
-const counters = document.querySelectorAll('[data-count]');
-const cio = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(!e.isIntersecting) return;
-    const el = e.target, target = +el.dataset.count;
-    let cur = 0; const step = Math.max(1, Math.round(target/40));
-    const tick = ()=>{ cur += step; if(cur>=target){ el.textContent = target+'+'; return; } el.textContent = cur; requestAnimationFrame(()=>setTimeout(tick,16)); };
-    tick();
-    cio.unobserve(el);
-  });
-}, { threshold:.6 });
-counters.forEach(c=>cio.observe(c));
-
-/* ---------- card tilt / glow ---------- */
-document.querySelectorAll('.f-card').forEach(card=>{
-  card.addEventListener('mousemove', e=>{
-    const r = card.getBoundingClientRect();
-    card.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100)+'%');
-    card.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
-  });
-});
-
-/* ---------- floating particle canvas ---------- */
-(function(){
-  const canvas = document.getElementById('particles');
-  const ctx = canvas.getContext('2d');
-  let w,h,particles;
-  function resize(){
-    w = canvas.width = canvas.offsetWidth;
-    h = canvas.height = canvas.offsetHeight;
-  }
-  function init(){
-    resize();
-    const count = w < 700 ? 22 : 45;
-    particles = Array.from({length:count}).map(()=>({
-      x: Math.random()*w, y: Math.random()*h,
-      r: Math.random()*1.6+0.6,
-      vx: (Math.random()-0.5)*0.15, vy: (Math.random()-0.5)*0.15,
-      hue: [ '255,138,61','79,209,197','140,124,255' ][Math.floor(Math.random()*3)]
-    }));
-  }
-  function draw(){
-    ctx.clearRect(0,0,w,h);
-    particles.forEach(p=>{
-      p.x += p.vx; p.y += p.vy;
-      if(p.x<0) p.x=w; if(p.x>w) p.x=0;
-      if(p.y<0) p.y=h; if(p.y>h) p.y=0;
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(${p.hue},0.5)`;
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  window.addEventListener('resize', resize);
-  init();
-  if(!mq.matches) draw(); else { draw(); } // draw once either way for a static field
-})();
-</script>
+<!-- App shell (sidebar, routing, theme, shortcuts) -->
+<script src="js/main.js"></script>
 </body>
 </html>
