@@ -55,19 +55,6 @@ DSA-Visualizer/
 
 Both `index.html` and `landing.html` share the same design tokens and the same `localStorage` theme key, so toggling dark/light mode on one carries over to the other.
 
-## 🚀 Getting Started
-
-No build step required.
-
-```bash
-git clone https://github.com/<your-username>/DSA-Visualizer.git
-cd DSA-Visualizer
-# then just open index.html in a browser, or serve it locally:
-python3 -m http.server 8080
-```
-
-Visit `http://localhost:8080` and you're in.
-
 ## 🧠 Algorithm Coverage
 
 | Category | Included |
